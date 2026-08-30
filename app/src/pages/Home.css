@@ -1,0 +1,36 @@
+.home {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.new-note-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  padding: 16px 24px;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.new-note-button:hover {
+  background: var(--accent-border);
+}
+
+@media (max-width: 600px) {
+  .new-note-button {
+    max-width: 100%;
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+}
