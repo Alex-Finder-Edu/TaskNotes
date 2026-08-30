@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useNotes } from '../context/NotesContext.jsx'
 import { validateFilename } from '../utils/filename.js'
+import { readDragPayload, setDragPayload } from '../utils/dnd.js'
 import ConfirmModal from './ConfirmModal.jsx'
 import './Sidebar.css'
 
@@ -131,7 +132,14 @@ function NoteRow({ note }) {
 
   return (
     <div className="tree-node">
-      <div className="sidebar-item">
+      <div
+        className="sidebar-item"
+        draggable={!editing}
+        onDragStart={(e) => {
+          e.stopPropagation()
+          setDragPayload(e, 'note', note.id)
+        }}
+      >
         <span className="tree-toggle-spacer" />
         {editing ? (
           <div className="sidebar-row-main">
@@ -185,18 +193,30 @@ function NoteRow({ note }) {
   )
 }
 
-function FolderNode({ folder }) {
+function FolderNode({ folder, autoEditId, onAutoEditConsumed }) {
   const {
     folders,
     notes,
     renameFolder,
     deleteFolder,
+    moveFolder,
+    moveNote,
     toggleFolderCollapsed,
     selectedFolderIds,
     selectFolder,
   } = useNotes()
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(folder.id === autoEditId)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+
+  useEffect(() => {
+    if (folder.id === autoEditId) {
+      onAutoEditConsumed()
+    }
+    // Only consult the auto-edit id on mount - a freshly created folder is
+    // the only one whose id can match, and it always mounts fresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const childFolders = folders.filter((f) => f.parentId === folder.id)
   const childNotes = notes.filter((n) => n.folderId === folder.id)
@@ -210,9 +230,44 @@ function FolderNode({ folder }) {
     }
   }
 
+  function handleDrop(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(false)
+    const payload = readDragPayload(e)
+    if (!payload) return
+    if (payload.type === 'folder' && payload.id !== folder.id) {
+      moveFolder(payload.id, folder.id)
+    } else if (payload.type === 'note') {
+      moveNote(payload.id, folder.id)
+    }
+  }
+
   return (
     <div className="tree-node">
-      <div className={`sidebar-item sidebar-folder-row${isSelected ? ' active' : ''}`}>
+      <div
+        className={`sidebar-item sidebar-folder-row${isSelected ? ' active' : ''}${dragOver ? ' drag-over' : ''}`}
+        draggable={!editing}
+        onDragStart={(e) => {
+          e.stopPropagation()
+          setDragPayload(e, 'folder', folder.id)
+        }}
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          e.dataTransfer.dropEffect = 'move'
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setDragOver(true)
+        }}
+        onDragLeave={(e) => {
+          e.stopPropagation()
+          setDragOver(false)
+        }}
+        onDrop={handleDrop}
+      >
         {hasChildren ? (
           <button
             type="button"
@@ -263,7 +318,12 @@ function FolderNode({ folder }) {
       {!folder.collapsed && hasChildren && (
         <div className="tree-children">
           {childFolders.map((child) => (
-            <FolderNode key={child.id} folder={child} />
+            <FolderNode
+              key={child.id}
+              folder={child}
+              autoEditId={autoEditId}
+              onAutoEditConsumed={onAutoEditConsumed}
+            />
           ))}
           {childNotes.map((note) => (
             <NoteRow key={note.id} note={note} />
@@ -288,11 +348,21 @@ function FolderNode({ folder }) {
 }
 
 export default function Sidebar() {
-  const { notes, folders, addFolder, selectedFolderId, selectedFolderIds, deleteFolders } =
-    useNotes()
+  const {
+    notes,
+    folders,
+    addFolder,
+    selectedFolderId,
+    selectedFolderIds,
+    deleteFolders,
+    expandFolders,
+    moveFolder,
+    moveNote,
+  } = useNotes()
   const navigate = useNavigate()
   const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false)
   const [widthOverride, setWidthOverride] = useState(null)
+  const [pendingEditFolderId, setPendingEditFolderId] = useState(null)
   const draggingRef = useRef(false)
 
   useEffect(() => {
@@ -323,11 +393,26 @@ export default function Sidebar() {
   }, [])
 
   function handleNewFolder() {
-    addFolder(selectedFolderId)
+    if (selectedFolderId) {
+      expandFolders(new Set([selectedFolderId]))
+    }
+    const newId = addFolder(selectedFolderId)
+    setPendingEditFolderId(newId)
   }
 
   function handleNewNote() {
+    if (selectedFolderId) {
+      expandFolders(new Set([selectedFolderId]))
+    }
     navigate('/notes/new', { state: { folderId: selectedFolderId } })
+  }
+
+  function handleRootDrop(e) {
+    e.preventDefault()
+    const payload = readDragPayload(e)
+    if (!payload) return
+    if (payload.type === 'folder') moveFolder(payload.id, null)
+    else if (payload.type === 'note') moveNote(payload.id, null)
   }
 
   const rootFolders = folders.filter((folder) => folder.parentId === null)
@@ -356,9 +441,21 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="sidebar-list">
+      <div
+        className="sidebar-list"
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+        }}
+        onDrop={handleRootDrop}
+      >
         {rootFolders.map((folder) => (
-          <FolderNode key={folder.id} folder={folder} />
+          <FolderNode
+            key={folder.id}
+            folder={folder}
+            autoEditId={pendingEditFolderId}
+            onAutoEditConsumed={() => setPendingEditFolderId(null)}
+          />
         ))}
 
         {rootNotes.map((note) => (

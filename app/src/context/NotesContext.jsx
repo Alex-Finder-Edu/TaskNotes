@@ -93,6 +93,7 @@ export function NotesProvider({ children }) {
   }
 
   function addFolder(parentId = null) {
+    const id = crypto.randomUUID()
     setWorkspace((prev) => {
       const baseName = 'New Folder'
       const siblingNames = new Set(
@@ -104,9 +105,35 @@ export function NotesProvider({ children }) {
         name = `${baseName} ${suffix}`
         suffix += 1
       }
-      const folder = { id: crypto.randomUUID(), name, parentId, collapsed: false }
+      const folder = { id, name, parentId, collapsed: false }
       return { ...prev, folders: [...prev.folders, folder] }
     })
+    return id
+  }
+
+  // Reparents a folder, refusing to drop it into itself or one of its own
+  // descendants (which would disconnect it from the tree entirely).
+  function moveFolder(id, parentId) {
+    setWorkspace((prev) => {
+      if (id === parentId) return prev
+      const currentFolder = prev.folders.find((folder) => folder.id === id)
+      if (!currentFolder || currentFolder.parentId === parentId) return prev
+      if (parentId !== null) {
+        const descendantIds = collectFolderAndDescendantIds(prev.folders, id)
+        if (descendantIds.has(parentId)) return prev
+      }
+      return {
+        ...prev,
+        folders: prev.folders.map((folder) => (folder.id === id ? { ...folder, parentId } : folder)),
+      }
+    })
+  }
+
+  function moveNote(id, folderId) {
+    setWorkspace((prev) => ({
+      ...prev,
+      notes: prev.notes.map((note) => (note.id === id ? { ...note, folderId } : note)),
+    }))
   }
 
   function renameFolder(id, name) {
@@ -214,7 +241,10 @@ export function NotesProvider({ children }) {
         renameFolder,
         deleteFolder,
         deleteFolders,
+        moveFolder,
+        moveNote,
         toggleFolderCollapsed,
+        expandFolders,
         selectedFolderId,
         selectedFolderIds,
         selectFolder,
