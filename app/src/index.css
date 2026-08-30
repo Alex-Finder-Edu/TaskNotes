@@ -15,7 +15,7 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  --sidebar-width: 12.5%;
+  --sidebar-width: max(12.5%, 220px);
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;

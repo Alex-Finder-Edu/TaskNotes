@@ -13,6 +13,21 @@ function loadInitialState() {
   return { notes: [], folders: [] }
 }
 
+function collectFolderAndDescendantIds(folders, id) {
+  const ids = new Set([id])
+  let grew = true
+  while (grew) {
+    grew = false
+    for (const folder of folders) {
+      if (ids.has(folder.parentId) && !ids.has(folder.id)) {
+        ids.add(folder.id)
+        grew = true
+      }
+    }
+  }
+  return ids
+}
+
 export function NotesProvider({ children }) {
   const [workspace, setWorkspace] = useState(loadInitialState)
 
@@ -24,11 +39,12 @@ export function NotesProvider({ children }) {
     }
   }, [workspace])
 
-  function addNote(title, content) {
+  function addNote(title, content, folderId = null) {
     const note = {
       id: crypto.randomUUID(),
       title,
       content,
+      folderId,
       createdAt: Date.now(),
     }
     setWorkspace((prev) => ({ ...prev, notes: [...prev.notes, note] }))
@@ -44,18 +60,59 @@ export function NotesProvider({ children }) {
     }))
   }
 
-  function addFolder() {
+  function renameNote(id, title) {
+    setWorkspace((prev) => ({
+      ...prev,
+      notes: prev.notes.map((note) => (note.id === id ? { ...note, title } : note)),
+    }))
+  }
+
+  function deleteNote(id) {
+    setWorkspace((prev) => ({ ...prev, notes: prev.notes.filter((note) => note.id !== id) }))
+  }
+
+  function addFolder(parentId = null) {
     setWorkspace((prev) => {
       const baseName = 'New Folder'
-      const existingNames = new Set(prev.folders.map((folder) => folder.name))
+      const siblingNames = new Set(
+        prev.folders.filter((folder) => folder.parentId === parentId).map((folder) => folder.name),
+      )
       let name = baseName
       let suffix = 1
-      while (existingNames.has(name)) {
+      while (siblingNames.has(name)) {
         name = `${baseName} ${suffix}`
         suffix += 1
       }
-      return { ...prev, folders: [...prev.folders, { id: crypto.randomUUID(), name }] }
+      const folder = { id: crypto.randomUUID(), name, parentId, collapsed: false }
+      return { ...prev, folders: [...prev.folders, folder] }
     })
+  }
+
+  function renameFolder(id, name) {
+    setWorkspace((prev) => ({
+      ...prev,
+      folders: prev.folders.map((folder) => (folder.id === id ? { ...folder, name } : folder)),
+    }))
+  }
+
+  function deleteFolder(id) {
+    setWorkspace((prev) => {
+      const idsToDelete = collectFolderAndDescendantIds(prev.folders, id)
+      return {
+        ...prev,
+        folders: prev.folders.filter((folder) => !idsToDelete.has(folder.id)),
+        notes: prev.notes.filter((note) => !idsToDelete.has(note.folderId)),
+      }
+    })
+  }
+
+  function toggleFolderCollapsed(id) {
+    setWorkspace((prev) => ({
+      ...prev,
+      folders: prev.folders.map((folder) =>
+        folder.id === id ? { ...folder, collapsed: !folder.collapsed } : folder,
+      ),
+    }))
   }
 
   return (
@@ -65,7 +122,12 @@ export function NotesProvider({ children }) {
         folders: workspace.folders,
         addNote,
         updateNote,
+        renameNote,
+        deleteNote,
         addFolder,
+        renameFolder,
+        deleteFolder,
+        toggleFolderCollapsed,
       }}
     >
       {children}

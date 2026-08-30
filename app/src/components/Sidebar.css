@@ -15,7 +15,13 @@
   z-index: 10;
 }
 
-.new-folder-button {
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-action-button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -34,13 +40,13 @@
   flex-shrink: 0;
 }
 
-.new-folder-button svg {
+.sidebar-action-button svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
-.new-folder-button:hover {
+.sidebar-action-button:hover {
   background: var(--accent-bg);
   border-color: var(--accent-border);
   color: var(--accent);
@@ -51,46 +57,147 @@
   flex-direction: column;
   gap: 2px;
   margin-top: 12px;
-  overflow-x: hidden;
+}
+
+.tree-node {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-children {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 9px;
+  padding-left: 9px;
+  border-left: 1px solid var(--border);
+}
+
+.tree-toggle,
+.tree-toggle-spacer {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.tree-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tree-toggle:hover {
+  color: var(--accent);
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 4px;
+  padding: 4px 6px;
   border-radius: 6px;
   color: var(--text);
   font-size: 14px;
-  overflow: hidden;
+  min-width: max-content;
 }
 
-.sidebar-note {
+.sidebar-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 2px 2px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-decoration: none;
   cursor: pointer;
+  text-align: left;
 }
 
+.sidebar-row-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-row-main svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-folder-row:hover,
 .sidebar-note:hover {
   background: var(--accent-bg);
   color: var(--accent);
 }
 
+.sidebar-folder-row.active,
 .sidebar-note.active {
   background: var(--accent-bg);
   color: var(--accent);
   font-weight: 600;
 }
 
-.sidebar-item span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.sidebar-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
-.sidebar-item svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+
+.sidebar-rename {
+  flex: 1;
+  min-width: 100px;
+}
+
+.sidebar-rename-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2px 6px;
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+}
+
+.sidebar-rename-input:focus {
+  outline: none;
+}
+
+.sidebar-rename-error {
+  margin: 2px 0 0;
+  color: #e5484d;
+  font-size: 11px;
+  white-space: normal;
 }
 
 .sidebar-empty {
@@ -101,18 +208,13 @@
 }
 
 @media (max-width: 600px) {
-  .new-folder-button span,
-  .new-folder-button {
+  .sidebar-action-button {
     font-size: 12px;
-  }
-
-  .new-folder-button {
     padding: 8px 6px;
     gap: 4px;
   }
 
   .sidebar-item {
     font-size: 12px;
-    padding: 6px 4px;
   }
 }

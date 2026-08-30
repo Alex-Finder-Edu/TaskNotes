@@ -1,0 +1,70 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.modal {
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.modal-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.modal-message {
+  margin: 0 0 20px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 145%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-button-danger {
+  border: 1px solid #e5484d;
+  background: rgba(229, 72, 77, 0.1);
+  color: #e5484d;
+}
+
+.modal-button-danger:hover {
+  background: rgba(229, 72, 77, 0.2);
+}
+
+.modal-button-secondary {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-h);
+}
+
+.modal-button-secondary:hover {
+  background: var(--code-bg);
+}
