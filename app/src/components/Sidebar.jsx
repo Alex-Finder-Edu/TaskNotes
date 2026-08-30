@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useNotes } from '../context/NotesContext.jsx'
 import { validateFilename } from '../utils/filename.js'
 import ConfirmModal from './ConfirmModal.jsx'
 import './Sidebar.css'
+
+const MIN_SIDEBAR_WIDTH = 220
 
 function FolderPlusIcon() {
   return (
@@ -183,15 +185,30 @@ function NoteRow({ note }) {
   )
 }
 
-function FolderNode({ folder, folders, notes, selectedFolderId, onSelectFolder }) {
-  const { renameFolder, deleteFolder, toggleFolderCollapsed } = useNotes()
+function FolderNode({ folder }) {
+  const {
+    folders,
+    notes,
+    renameFolder,
+    deleteFolder,
+    toggleFolderCollapsed,
+    selectedFolderIds,
+    selectFolder,
+  } = useNotes()
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const childFolders = folders.filter((f) => f.parentId === folder.id)
   const childNotes = notes.filter((n) => n.folderId === folder.id)
   const hasChildren = childFolders.length > 0 || childNotes.length > 0
-  const isSelected = selectedFolderId === folder.id
+  const isSelected = selectedFolderIds.includes(folder.id)
+
+  function handleNameClick(e) {
+    selectFolder(folder.id, { shift: e.shiftKey })
+    if (!e.shiftKey) {
+      toggleFolderCollapsed(folder.id)
+    }
+  }
 
   return (
     <div className="tree-node">
@@ -222,12 +239,7 @@ function FolderNode({ folder, folders, notes, selectedFolderId, onSelectFolder }
             />
           </div>
         ) : (
-          <button
-            type="button"
-            className="sidebar-row-main"
-            title={folder.name}
-            onClick={() => onSelectFolder(folder.id)}
-          >
+          <button type="button" className="sidebar-row-main" title={folder.name} onClick={handleNameClick}>
             <FolderIcon />
             <span>{folder.name}</span>
           </button>
@@ -251,14 +263,7 @@ function FolderNode({ folder, folders, notes, selectedFolderId, onSelectFolder }
       {!folder.collapsed && hasChildren && (
         <div className="tree-children">
           {childFolders.map((child) => (
-            <FolderNode
-              key={child.id}
-              folder={child}
-              folders={folders}
-              notes={notes}
-              selectedFolderId={selectedFolderId}
-              onSelectFolder={onSelectFolder}
-            />
+            <FolderNode key={child.id} folder={child} />
           ))}
           {childNotes.map((note) => (
             <NoteRow key={note.id} note={note} />
@@ -275,7 +280,6 @@ function FolderNode({ folder, folders, notes, selectedFolderId, onSelectFolder }
         onConfirm={() => {
           deleteFolder(folder.id)
           setConfirmingDelete(false)
-          if (isSelected) onSelectFolder(null)
         }}
         onCancel={() => setConfirmingDelete(false)}
       />
@@ -284,13 +288,39 @@ function FolderNode({ folder, folders, notes, selectedFolderId, onSelectFolder }
 }
 
 export default function Sidebar() {
-  const { notes, folders, addFolder } = useNotes()
+  const { notes, folders, addFolder, selectedFolderId, selectedFolderIds, deleteFolders } =
+    useNotes()
   const navigate = useNavigate()
-  const [selectedFolderId, setSelectedFolderId] = useState(null)
+  const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false)
+  const [widthOverride, setWidthOverride] = useState(null)
+  const draggingRef = useRef(false)
 
-  function handleSelectFolder(folderId) {
-    setSelectedFolderId((prev) => (prev === folderId ? null : folderId))
-  }
+  useEffect(() => {
+    const root = document.documentElement
+    if (widthOverride === null) {
+      root.style.removeProperty('--sidebar-width')
+    } else {
+      root.style.setProperty('--sidebar-width', `${widthOverride}px`)
+    }
+  }, [widthOverride])
+
+  useEffect(() => {
+    function handleMouseMove(e) {
+      if (!draggingRef.current) return
+      const maxWidth = window.innerWidth * 0.85
+      const next = Math.min(Math.max(e.clientX, MIN_SIDEBAR_WIDTH), maxWidth)
+      setWidthOverride(next)
+    }
+    function handleMouseUp() {
+      draggingRef.current = false
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   function handleNewFolder() {
     addFolder(selectedFolderId)
@@ -314,18 +344,21 @@ export default function Sidebar() {
           <NotePlusIcon />
           New Note
         </button>
+        {selectedFolderIds.length > 1 && (
+          <button
+            type="button"
+            className="sidebar-action-button sidebar-delete-selected-button"
+            onClick={() => setConfirmingBulkDelete(true)}
+          >
+            <TrashIcon />
+            {`Delete ${selectedFolderIds.length} selected folders`}
+          </button>
+        )}
       </div>
 
       <div className="sidebar-list">
         {rootFolders.map((folder) => (
-          <FolderNode
-            key={folder.id}
-            folder={folder}
-            folders={folders}
-            notes={notes}
-            selectedFolderId={selectedFolderId}
-            onSelectFolder={handleSelectFolder}
-          />
+          <FolderNode key={folder.id} folder={folder} />
         ))}
 
         {rootNotes.map((note) => (
@@ -336,6 +369,29 @@ export default function Sidebar() {
           <p className="sidebar-empty">No notes or folders yet.</p>
         )}
       </div>
+
+      <div
+        className="sidebar-resize-handle"
+        onMouseDown={(e) => {
+          e.preventDefault()
+          draggingRef.current = true
+        }}
+        onDoubleClick={() => setWidthOverride(null)}
+        title="Drag to resize, double-click to reset"
+      />
+
+      <ConfirmModal
+        open={confirmingBulkDelete}
+        title="Delete selected folders?"
+        message={`Are you sure you want to delete ${selectedFolderIds.length} selected folders and everything inside them? This can't be undone.`}
+        confirmLabel="Yes, delete"
+        cancelLabel="No, keep"
+        onConfirm={() => {
+          deleteFolders(selectedFolderIds)
+          setConfirmingBulkDelete(false)
+        }}
+        onCancel={() => setConfirmingBulkDelete(false)}
+      />
     </aside>
   )
 }

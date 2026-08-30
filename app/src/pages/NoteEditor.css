@@ -7,6 +7,46 @@
   box-sizing: border-box;
 }
 
+.note-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.breadcrumb-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent);
+}
+
+.breadcrumb-separator {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.breadcrumb-current {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
 .note-editor-header {
   display: flex;
   align-items: center;

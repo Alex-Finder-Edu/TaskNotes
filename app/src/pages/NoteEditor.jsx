@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useNotes } from '../context/NotesContext.jsx'
+import { getFolderPath, useNotes } from '../context/NotesContext.jsx'
 import { validateFilename } from '../utils/filename.js'
 import ConfirmModal from '../components/ConfirmModal.jsx'
 import './NoteEditor.css'
@@ -31,9 +31,10 @@ export default function NoteEditor() {
   const { noteId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
-  const { notes, addNote, updateNote, deleteNote } = useNotes()
+  const { notes, folders, addNote, updateNote, deleteNote, focusFolder } = useNotes()
 
   const existingNote = noteId ? notes.find((note) => note.id === noteId) : null
+  const folderPath = getFolderPath(folders, existingNote?.folderId ?? location.state?.folderId ?? null)
 
   const [title, setTitle] = useState(existingNote?.title ?? '')
   const [content, setContent] = useState(existingNote?.content ?? '')
@@ -42,10 +43,13 @@ export default function NoteEditor() {
 
   useEffect(() => {
     if (noteId && !existingNote) {
-      // The route points to a note that no longer exists.
+      // The route points to a note that no longer exists (including one
+      // deleted indirectly, e.g. via a folder delete while it was open).
       navigate('/', { replace: true })
-      return
     }
+  }, [noteId, existingNote, navigate])
+
+  useEffect(() => {
     setTitle(existingNote?.title ?? '')
     setContent(existingNote?.content ?? '')
     setError(null)
@@ -78,6 +82,21 @@ export default function NoteEditor() {
 
   return (
     <main className="note-editor">
+      <nav className="note-breadcrumb" aria-label="Note location">
+        {folderPath.map((folder) => (
+          <span key={folder.id} className="breadcrumb-segment">
+            <button
+              type="button"
+              className="breadcrumb-link"
+              onClick={() => focusFolder(folder.id)}
+            >
+              {folder.name}
+            </button>
+            <span className="breadcrumb-separator">/</span>
+          </span>
+        ))}
+        <span className="breadcrumb-current">{title.trim() || 'Untitled Note'}</span>
+      </nav>
       <div className="note-editor-header">
         <input
           type="text"

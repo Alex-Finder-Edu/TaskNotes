@@ -15,6 +15,20 @@
   z-index: 10;
 }
 
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 11;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--accent-border);
+}
+
 .sidebar-actions {
   display: flex;
   flex-direction: column;
@@ -50,6 +64,18 @@
   background: var(--accent-bg);
   border-color: var(--accent-border);
   color: var(--accent);
+}
+
+.sidebar-delete-selected-button {
+  border-color: #e5484d;
+  background: rgba(229, 72, 77, 0.1);
+  color: #e5484d;
+}
+
+.sidebar-delete-selected-button:hover {
+  background: rgba(229, 72, 77, 0.2);
+  border-color: #e5484d;
+  color: #e5484d;
 }
 
 .sidebar-list {
