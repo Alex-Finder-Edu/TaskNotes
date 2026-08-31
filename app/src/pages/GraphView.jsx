@@ -10,9 +10,46 @@ const ITERATIONS = 250
 const MIN_ZOOM = 0.4
 const MAX_ZOOM = 3
 const ZOOM_STEP = 0.2
+const PAN_STEP = 80
 
 function clampZoom(value) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
+}
+
+function ArrowUpIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  )
+}
+
+function ArrowDownIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <polyline points="19 12 12 19 5 12" />
+    </svg>
+  )
+}
+
+function ArrowLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 5 5 12 12 19" />
+    </svg>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  )
 }
 
 function ZoomInIcon() {
@@ -160,7 +197,10 @@ export default function GraphView() {
   const { notes } = useNotes()
   const navigate = useNavigate()
   const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
   const svgWrapperRef = useRef(null)
+  const panRef = useRef(pan)
+  const dragRef = useRef(null)
 
   const edges = useMemo(() => buildNoteGraph(notes), [notes])
   const positions = useMemo(() => computeLayout(notes, edges), [notes, edges])
@@ -191,6 +231,59 @@ export default function GraphView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [])
 
+  useEffect(() => {
+    panRef.current = pan
+  }, [pan])
+
+  useEffect(() => {
+    const wrapper = svgWrapperRef.current
+    if (!wrapper) return
+
+    // Panning by dragging the background: only starts when the mousedown
+    // target isn't a node (so clicking/dragging a node still just opens it,
+    // it doesn't also start a pan). Screen-pixel deltas are converted into
+    // viewBox units using the SVG's rendered size, so a drag always tracks
+    // the cursor 1:1 regardless of the current zoom level.
+    function handleMouseDown(e) {
+      if (e.button !== 0 || e.target.closest('.graph-node')) return
+      const rect = wrapper.querySelector('.graph-svg').getBoundingClientRect()
+      dragRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        originX: panRef.current.x,
+        originY: panRef.current.y,
+        scaleX: WIDTH / rect.width,
+        scaleY: HEIGHT / rect.height,
+      }
+    }
+
+    function handleMouseMove(e) {
+      const drag = dragRef.current
+      if (!drag) return
+      setPan({
+        x: drag.originX + (e.clientX - drag.startX) * drag.scaleX,
+        y: drag.originY + (e.clientY - drag.startY) * drag.scaleY,
+      })
+    }
+
+    function handleMouseUp() {
+      dragRef.current = null
+    }
+
+    wrapper.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      wrapper.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
+  function panBy(dx, dy) {
+    setPan((p) => ({ x: p.x + dx, y: p.y + dy }))
+  }
+
   return (
     <main className="graph-view">
       <h2 className="graph-view-title">Graph View</h2>
@@ -216,34 +309,70 @@ export default function GraphView() {
               <ZoomOutIcon />
             </button>
           </div>
+          <div className="graph-pan-controls">
+            <button
+              type="button"
+              className="graph-control-button graph-pan-up"
+              title="Pan Up"
+              onClick={() => panBy(0, -PAN_STEP)}
+            >
+              <ArrowUpIcon />
+            </button>
+            <button
+              type="button"
+              className="graph-control-button graph-pan-left"
+              title="Pan Left"
+              onClick={() => panBy(-PAN_STEP, 0)}
+            >
+              <ArrowLeftIcon />
+            </button>
+            <button
+              type="button"
+              className="graph-control-button graph-pan-right"
+              title="Pan Right"
+              onClick={() => panBy(PAN_STEP, 0)}
+            >
+              <ArrowRightIcon />
+            </button>
+            <button
+              type="button"
+              className="graph-control-button graph-pan-down"
+              title="Pan Down"
+              onClick={() => panBy(0, PAN_STEP)}
+            >
+              <ArrowDownIcon />
+            </button>
+          </div>
           <svg className="graph-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
-            <g transform={`translate(${WIDTH / 2}, ${HEIGHT / 2}) scale(${zoom}) translate(${-WIDTH / 2}, ${-HEIGHT / 2})`}>
-              <g className="graph-edges">
-                {edges.map(({ source, target }) => {
-                  const a = positions.get(source)
-                  const b = positions.get(target)
-                  if (!a || !b) return null
-                  return <line key={`${source}-${target}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
-                })}
-              </g>
-              <g className="graph-nodes">
-                {notes.map((note) => {
-                  const pos = positions.get(note.id)
-                  if (!pos) return null
-                  const nodeRadius = 6 + Math.min(degree.get(note.id) ?? 0, 8) * 1.2
-                  return (
-                    <g
-                      key={note.id}
-                      className="graph-node"
-                      transform={`translate(${pos.x}, ${pos.y})`}
-                      onClick={() => navigate(`/notes/${note.id}`)}
-                    >
-                      <circle r={nodeRadius} />
-                      <text y={nodeRadius + 14}>{note.title}</text>
-                      <title>{note.title}</title>
-                    </g>
-                  )
-                })}
+            <g transform={`translate(${pan.x}, ${pan.y})`}>
+              <g transform={`translate(${WIDTH / 2}, ${HEIGHT / 2}) scale(${zoom}) translate(${-WIDTH / 2}, ${-HEIGHT / 2})`}>
+                <g className="graph-edges">
+                  {edges.map(({ source, target }) => {
+                    const a = positions.get(source)
+                    const b = positions.get(target)
+                    if (!a || !b) return null
+                    return <line key={`${source}-${target}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+                  })}
+                </g>
+                <g className="graph-nodes">
+                  {notes.map((note) => {
+                    const pos = positions.get(note.id)
+                    if (!pos) return null
+                    const nodeRadius = 6 + Math.min(degree.get(note.id) ?? 0, 8) * 1.2
+                    return (
+                      <g
+                        key={note.id}
+                        className="graph-node"
+                        transform={`translate(${pos.x}, ${pos.y})`}
+                        onClick={() => navigate(`/notes/${note.id}`)}
+                      >
+                        <circle r={nodeRadius} />
+                        <text y={nodeRadius + 14}>{note.title}</text>
+                        <title>{note.title}</title>
+                      </g>
+                    )
+                  })}
+                </g>
               </g>
             </g>
           </svg>
