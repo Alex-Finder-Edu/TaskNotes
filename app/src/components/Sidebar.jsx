@@ -8,6 +8,20 @@ import './Sidebar.css'
 
 const MIN_SIDEBAR_WIDTH = 220
 
+function GraphIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="6" y1="6" x2="14" y2="14" />
+      <line x1="18" y1="6" x2="14" y2="14" />
+      <line x1="6" y1="18" x2="14" y2="14" />
+      <circle cx="6" cy="6" r="2" />
+      <circle cx="18" cy="6" r="2" />
+      <circle cx="6" cy="18" r="2" />
+      <circle cx="14" cy="14" r="2.5" />
+    </svg>
+  )
+}
+
 function FolderPlusIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -421,6 +435,10 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-actions">
+        <button type="button" className="sidebar-action-button" onClick={() => navigate('/graph')}>
+          <GraphIcon />
+          Graph View
+        </button>
         <button type="button" className="sidebar-action-button" onClick={handleNewFolder}>
           <FolderPlusIcon />
           New Folder
