@@ -11,9 +11,9 @@ function safeHref(url) {
 }
 
 const INLINE_PATTERN =
-  /(`[^`]+`)|(\*\*[^*]+\*\*)|(__[^_]+__)|(\*[^*]+\*)|(_[^_]+_)|(\[[^\]]+\]\([^)]+\))/
+  /(`[^`]+`)|(\*\*[^*]+\*\*)|(__[^_]+__)|(\*[^*]+\*)|(_[^_]+_)|(\[\[[^\]]+\]\])|(\[[^\]]+\]\([^)]+\))/
 
-function parseInline(text, keyPrefix = 'i') {
+function parseInline(text, keyPrefix = 'i', linkContext = {}) {
   const nodes = []
   let remaining = text
   let index = 0
@@ -36,9 +36,28 @@ function parseInline(text, keyPrefix = 'i') {
     if (token.startsWith('`')) {
       nodes.push(<code key={key}>{token.slice(1, -1)}</code>)
     } else if (token.startsWith('**') || token.startsWith('__')) {
-      nodes.push(<strong key={key}>{parseInline(token.slice(2, -2), key)}</strong>)
+      nodes.push(<strong key={key}>{parseInline(token.slice(2, -2), key, linkContext)}</strong>)
     } else if (token.startsWith('*') || token.startsWith('_')) {
-      nodes.push(<em key={key}>{parseInline(token.slice(1, -1), key)}</em>)
+      nodes.push(<em key={key}>{parseInline(token.slice(1, -1), key, linkContext)}</em>)
+    } else if (token.startsWith('[[')) {
+      const linkTitle = token.slice(2, -2)
+      const { notes = [], onNoteLinkClick } = linkContext
+      const note = notes.find(
+        (candidate) => candidate.title.trim().toLowerCase() === linkTitle.trim().toLowerCase(),
+      )
+      nodes.push(
+        <a
+          key={key}
+          href="#"
+          className={note ? 'md-internal-link' : 'md-internal-link md-internal-link-broken'}
+          onClick={(e) => {
+            e.preventDefault()
+            if (note && onNoteLinkClick) onNoteLinkClick(note.id)
+          }}
+        >
+          {linkTitle}
+        </a>,
+      )
     } else if (token.startsWith('[')) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
       nodes.push(
@@ -67,7 +86,7 @@ function isBlockBoundary(line) {
   )
 }
 
-export function renderMarkdown(markdown) {
+export function renderMarkdown(markdown, linkContext = {}) {
   const lines = (markdown ?? '').split('\n')
   const blocks = []
   let i = 0
@@ -102,7 +121,7 @@ export function renderMarkdown(markdown) {
     if (headingMatch) {
       const level = headingMatch[1].length
       const Tag = `h${level}`
-      blocks.push(<Tag key={key}>{parseInline(headingMatch[2], `h${key++}`)}</Tag>)
+      blocks.push(<Tag key={key}>{parseInline(headingMatch[2], `h${key++}`, linkContext)}</Tag>)
       i++
       continue
     }
@@ -119,7 +138,9 @@ export function renderMarkdown(markdown) {
         quoteLines.push(lines[i].trim().replace(/^>\s?/, ''))
         i++
       }
-      blocks.push(<blockquote key={key}>{parseInline(quoteLines.join(' '), `q${key++}`)}</blockquote>)
+      blocks.push(
+        <blockquote key={key}>{parseInline(quoteLines.join(' '), `q${key++}`, linkContext)}</blockquote>,
+      )
       continue
     }
 
@@ -132,7 +153,7 @@ export function renderMarkdown(markdown) {
       blocks.push(
         <ul key={key}>
           {items.map((item, idx) => (
-            <li key={idx}>{parseInline(item, `ul${key}-${idx}`)}</li>
+            <li key={idx}>{parseInline(item, `ul${key}-${idx}`, linkContext)}</li>
           ))}
         </ul>,
       )
@@ -149,7 +170,7 @@ export function renderMarkdown(markdown) {
       blocks.push(
         <ol key={key}>
           {items.map((item, idx) => (
-            <li key={idx}>{parseInline(item, `ol${key}-${idx}`)}</li>
+            <li key={idx}>{parseInline(item, `ol${key}-${idx}`, linkContext)}</li>
           ))}
         </ol>,
       )
@@ -162,7 +183,7 @@ export function renderMarkdown(markdown) {
       paraLines.push(lines[i])
       i++
     }
-    blocks.push(<p key={key}>{parseInline(paraLines.join(' '), `p${key++}`)}</p>)
+    blocks.push(<p key={key}>{parseInline(paraLines.join(' '), `p${key++}`, linkContext)}</p>)
   }
 
   return blocks

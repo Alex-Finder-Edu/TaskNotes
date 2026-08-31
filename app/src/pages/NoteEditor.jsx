@@ -4,6 +4,7 @@ import { getFolderPath, useNotes } from '../context/NotesContext.jsx'
 import { validateFilename } from '../utils/filename.js'
 import { renderMarkdown } from '../utils/markdown.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import LinkAwareTextarea from '../components/LinkAwareTextarea.jsx'
 import './NoteEditor.css'
 
 function SaveIcon() {
@@ -186,23 +187,25 @@ export default function NoteEditor() {
       </div>
       {error && <p className="note-title-error">{error}</p>}
       {viewMode === 'markdown' ? (
-        <textarea
+        <LinkAwareTextarea
           className="note-editor-textarea"
-          placeholder="Write your note in markdown..."
+          placeholder="Write your note in markdown... (type [[ to link another note)"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={setContent}
+          notes={notes}
         />
       ) : (
         <div className="note-editor-split">
-          <textarea
+          <LinkAwareTextarea
             className="note-editor-textarea note-editor-textarea-split"
-            placeholder="Write your note in markdown..."
+            placeholder="Write your note in markdown... (type [[ to link another note)"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
+            notes={notes}
           />
           <div className="note-editor-preview">
             {content.trim() ? (
-              renderMarkdown(content)
+              renderMarkdown(content, { notes, onNoteLinkClick: (id) => navigate(`/notes/${id}`) })
             ) : (
               <p className="note-editor-preview-empty">Nothing to preview yet.</p>
             )}
