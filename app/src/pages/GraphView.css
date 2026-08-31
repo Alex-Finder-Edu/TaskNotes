@@ -17,6 +17,13 @@
   opacity: 0.7;
 }
 
+.graph-svg-wrapper {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  box-sizing: border-box;
+}
+
 .graph-svg {
   /* An <svg> is a replaced element: with only min-height set, an unset
      height falls back to the viewBox's intrinsic aspect ratio applied to
@@ -24,11 +31,41 @@
      than the viewport. Setting height explicitly avoids that. */
   display: block;
   width: 100%;
-  height: 65vh;
+  height: 100%;
   box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
+}
+
+.graph-zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+}
+
+.graph-zoom-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.graph-zoom-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
 }
 
 .graph-edges line {

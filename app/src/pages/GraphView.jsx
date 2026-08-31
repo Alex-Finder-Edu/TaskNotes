@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotes } from '../context/NotesContext.jsx'
 import { buildNoteGraph } from '../utils/links.js'
@@ -7,6 +7,34 @@ import './GraphView.css'
 const WIDTH = 1000
 const HEIGHT = 700
 const ITERATIONS = 250
+const MIN_ZOOM = 0.4
+const MAX_ZOOM = 3
+const ZOOM_STEP = 0.2
+
+function clampZoom(value) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value))
+}
+
+function ZoomInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <line x1="11" y1="8" x2="11" y2="14" />
+      <line x1="8" y1="11" x2="14" y2="11" />
+    </svg>
+  )
+}
+
+function ZoomOutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <line x1="8" y1="11" x2="14" y2="11" />
+    </svg>
+  )
+}
 
 // A small Fruchterman-Reingold force layout: nodes repel each other, edges
 // pull their endpoints together, and both forces are cooled down over the
@@ -131,6 +159,8 @@ function computeLayout(notes, edges) {
 export default function GraphView() {
   const { notes } = useNotes()
   const navigate = useNavigate()
+  const [zoom, setZoom] = useState(1)
+  const svgWrapperRef = useRef(null)
 
   const edges = useMemo(() => buildNoteGraph(notes), [notes])
   const positions = useMemo(() => computeLayout(notes, edges), [notes, edges])
@@ -144,41 +174,80 @@ export default function GraphView() {
     return counts
   }, [edges])
 
+  useEffect(() => {
+    const el = svgWrapperRef.current
+    if (!el) return
+
+    // Wheel events are attached passively by React by default, which
+    // silently ignores preventDefault() - a native listener is needed so
+    // scrolling the wheel over the graph zooms it instead of scrolling
+    // the page underneath it.
+    function handleWheel(e) {
+      e.preventDefault()
+      setZoom((z) => clampZoom(z + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)))
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [])
+
   return (
     <main className="graph-view">
       <h2 className="graph-view-title">Graph View</h2>
       {notes.length === 0 ? (
         <p className="graph-view-empty">No notes yet.</p>
       ) : (
-        <svg className="graph-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
-          <g className="graph-edges">
-            {edges.map(({ source, target }) => {
-              const a = positions.get(source)
-              const b = positions.get(target)
-              if (!a || !b) return null
-              return <line key={`${source}-${target}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
-            })}
-          </g>
-          <g className="graph-nodes">
-            {notes.map((note) => {
-              const pos = positions.get(note.id)
-              if (!pos) return null
-              const nodeRadius = 6 + Math.min(degree.get(note.id) ?? 0, 8) * 1.2
-              return (
-                <g
-                  key={note.id}
-                  className="graph-node"
-                  transform={`translate(${pos.x}, ${pos.y})`}
-                  onClick={() => navigate(`/notes/${note.id}`)}
-                >
-                  <circle r={nodeRadius} />
-                  <text y={nodeRadius + 14}>{note.title}</text>
-                  <title>{note.title}</title>
-                </g>
-              )
-            })}
-          </g>
-        </svg>
+        <div className="graph-svg-wrapper" ref={svgWrapperRef}>
+          <div className="graph-zoom-controls">
+            <button
+              type="button"
+              className="graph-zoom-button"
+              title="Zoom in"
+              onClick={() => setZoom((z) => clampZoom(z + ZOOM_STEP))}
+            >
+              <ZoomInIcon />
+            </button>
+            <button
+              type="button"
+              className="graph-zoom-button"
+              title="Zoom out"
+              onClick={() => setZoom((z) => clampZoom(z - ZOOM_STEP))}
+            >
+              <ZoomOutIcon />
+            </button>
+          </div>
+          <svg className="graph-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+            <g transform={`translate(${WIDTH / 2}, ${HEIGHT / 2}) scale(${zoom}) translate(${-WIDTH / 2}, ${-HEIGHT / 2})`}>
+              <g className="graph-edges">
+                {edges.map(({ source, target }) => {
+                  const a = positions.get(source)
+                  const b = positions.get(target)
+                  if (!a || !b) return null
+                  return <line key={`${source}-${target}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+                })}
+              </g>
+              <g className="graph-nodes">
+                {notes.map((note) => {
+                  const pos = positions.get(note.id)
+                  if (!pos) return null
+                  const nodeRadius = 6 + Math.min(degree.get(note.id) ?? 0, 8) * 1.2
+                  return (
+                    <g
+                      key={note.id}
+                      className="graph-node"
+                      transform={`translate(${pos.x}, ${pos.y})`}
+                      onClick={() => navigate(`/notes/${note.id}`)}
+                    >
+                      <circle r={nodeRadius} />
+                      <text y={nodeRadius + 14}>{note.title}</text>
+                      <title>{note.title}</title>
+                    </g>
+                  )
+                })}
+              </g>
+            </g>
+          </svg>
+        </div>
       )}
     </main>
   )
