@@ -8,6 +8,24 @@ import './Sidebar.css'
 
 const MIN_SIDEBAR_WIDTH = 220
 
+function NotesIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+    </svg>
+  )
+}
+
+function ThemeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1Z" />
+    </svg>
+  )
+}
+
 function GraphIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -434,11 +452,18 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-actions">
-        <button type="button" className="sidebar-action-button" onClick={() => navigate('/graph')}>
+      <nav className="sidebar-nav">
+        <NavLink to="/" end className={({ isActive }) => `sidebar-nav-link${isActive ? ' active' : ''}`}>
+          <NotesIcon />
+          Notes
+        </NavLink>
+        <NavLink to="/graph" className={({ isActive }) => `sidebar-nav-link${isActive ? ' active' : ''}`}>
           <GraphIcon />
           Graph View
-        </button>
+        </NavLink>
+      </nav>
+
+      <div className="sidebar-actions">
         <button type="button" className="sidebar-action-button" onClick={handleNewFolder}>
           <FolderPlusIcon />
           New Folder
@@ -494,6 +519,13 @@ export default function Sidebar() {
         onDoubleClick={() => setWidthOverride(null)}
         title="Drag to resize, double-click to reset"
       />
+
+      <div className="sidebar-footer">
+        <NavLink to="/appearance" className={({ isActive }) => `sidebar-nav-link${isActive ? ' active' : ''}`}>
+          <ThemeIcon />
+          Theme
+        </NavLink>
+      </div>
 
       <ConfirmModal
         open={confirmingBulkDelete}

@@ -1,0 +1,151 @@
+.appearance {
+  flex: 1;
+  max-width: 640px;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.appearance-subtitle {
+  color: var(--text);
+  opacity: 0.75;
+  margin-top: -8px;
+}
+
+.appearance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appearance-section h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.theme-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 140px));
+  gap: 10px;
+}
+
+.theme-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-mode-card:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.theme-mode-card.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.theme-mode-card span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.accent-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.accent-color-input {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+
+.accent-hex-input {
+  width: 120px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.accent-hex-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.accent-reset-button {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.accent-reset-button:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.accent-error {
+  margin: 0;
+  font-size: 12.5px;
+  color: #e5484d;
+}
+
+.appearance-preview {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.appearance-preview h2 {
+  font-size: 18px;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 1;
+  color: var(--text-h);
+  margin-bottom: 8px;
+}
+
+.appearance-preview p {
+  color: var(--text);
+  line-height: 160%;
+}
+
+.appearance-preview-link {
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 500;
+}
