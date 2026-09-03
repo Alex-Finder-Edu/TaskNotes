@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './LinkAwareTextarea.css'
 
 // Finds the [[ ... ]] pair the cursor currently sits inside, if any. Returns
@@ -61,9 +61,13 @@ function measureCaretPosition(textarea, caretIndex) {
   return { top, left }
 }
 
-export default function LinkAwareTextarea({ value, onChange, notes, className, placeholder }) {
+const LinkAwareTextarea = forwardRef(function LinkAwareTextarea(
+  { value, onChange, notes, className, placeholder },
+  forwardedRef,
+) {
   const textareaRef = useRef(null)
   const pendingSelectionRef = useRef(null)
+  useImperativeHandle(forwardedRef, () => textareaRef.current)
   const [linkCtx, setLinkCtx] = useState(null)
   const [highlightIndex, setHighlightIndex] = useState(0)
   const [caretPos, setCaretPos] = useState({ top: 0, left: 0 })
@@ -187,4 +191,6 @@ export default function LinkAwareTextarea({ value, onChange, notes, className, p
       )}
     </div>
   )
-}
+})
+
+export default LinkAwareTextarea

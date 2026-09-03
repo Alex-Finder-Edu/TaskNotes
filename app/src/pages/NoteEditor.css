@@ -167,6 +167,41 @@
   background: rgba(229, 72, 77, 0.2);
 }
 
+.note-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: fit-content;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.note-toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.note-toolbar-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.note-toolbar-button:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
 .note-title-error {
   margin: 0;
   color: #e5484d;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getFolderPath, useNotes } from '../context/NotesContext.jsx'
 import { validateFilename } from '../utils/filename.js'
@@ -47,6 +47,15 @@ function CodeIcon() {
   )
 }
 
+function LinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5" />
+      <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.5-1.5" />
+    </svg>
+  )
+}
+
 export default function NoteEditor() {
   const { noteId } = useParams()
   const location = useLocation()
@@ -62,6 +71,8 @@ export default function NoteEditor() {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [viewMode, setViewMode] = useState('preview')
   const titleInputRef = useRef(null)
+  const editorRef = useRef(null)
+  const pendingSelectionRef = useRef(null)
 
   useEffect(() => {
     if (!noteId) {
@@ -88,6 +99,83 @@ export default function NoteEditor() {
     // context update - so in-progress edits aren't clobbered after a save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId])
+
+  useLayoutEffect(() => {
+    const el = editorRef.current
+    if (pendingSelectionRef.current && el) {
+      const { start, end } = pendingSelectionRef.current
+      pendingSelectionRef.current = null
+      el.focus()
+      el.setSelectionRange(start, end)
+    }
+  })
+
+  // Wraps the current selection in `open`/`close` (e.g. "**" for bold), or
+  // unwraps it if the selection is already wrapped - toggling either the
+  // exact markers around the selection or markers included in the selection
+  // itself, so re-clicking a button undoes it.
+  function wrapSelection(open, close) {
+    const el = editorRef.current
+    if (!el) return
+    const { selectionStart: start, selectionEnd: end, value } = el
+    const before = value.slice(0, start)
+    const after = value.slice(end)
+    const selected = value.slice(start, end)
+
+    const hasOuterWrap = before.endsWith(open) && after.startsWith(close)
+    const hasInnerWrap =
+      selected.length >= open.length + close.length && selected.startsWith(open) && selected.endsWith(close)
+
+    let newValue
+    let newStart
+    let newEnd
+
+    if (hasOuterWrap) {
+      newValue = before.slice(0, before.length - open.length) + selected + after.slice(close.length)
+      newStart = start - open.length
+      newEnd = end - open.length
+    } else if (hasInnerWrap) {
+      const inner = selected.slice(open.length, selected.length - close.length)
+      newValue = before + inner + after
+      newStart = start
+      newEnd = start + inner.length
+    } else {
+      newValue = `${before}${open}${selected}${close}${after}`
+      newStart = selected.length === 0 ? start + open.length : start
+      newEnd = selected.length === 0 ? newStart : end + open.length + close.length
+    }
+
+    setContent(newValue)
+    pendingSelectionRef.current = { start: newStart, end: newEnd }
+  }
+
+  // Toggles a "## " heading prefix on the line the selection starts in.
+  function toggleHeading() {
+    const el = editorRef.current
+    if (!el) return
+    const { selectionStart: start, selectionEnd: end, value } = el
+    const lineStart = value.lastIndexOf('\n', start - 1) + 1
+    const lineEndSearch = value.indexOf('\n', end)
+    const lineEnd = lineEndSearch === -1 ? value.length : lineEndSearch
+    const line = value.slice(lineStart, lineEnd)
+    const prefix = '## '
+
+    let newLine
+    let delta
+    if (line.startsWith(prefix)) {
+      newLine = line.slice(prefix.length)
+      delta = -prefix.length
+    } else {
+      newLine = prefix + line
+      delta = prefix.length
+    }
+
+    setContent(value.slice(0, lineStart) + newLine + value.slice(lineEnd))
+    pendingSelectionRef.current = {
+      start: Math.max(lineStart, start + delta),
+      end: Math.max(lineStart, end + delta),
+    }
+  }
 
   function handleSave() {
     const result = validateFilename(title)
@@ -186,8 +274,31 @@ export default function NoteEditor() {
         </div>
       </div>
       {error && <p className="note-title-error">{error}</p>}
+      <div className="note-toolbar">
+        <button type="button" className="note-toolbar-button" title="Bold" onClick={() => wrapSelection('**', '**')}>
+          <b>B</b>
+        </button>
+        <button type="button" className="note-toolbar-button" title="Italic" onClick={() => wrapSelection('*', '*')}>
+          <i>I</i>
+        </button>
+        <button type="button" className="note-toolbar-button" title="Heading" onClick={toggleHeading}>
+          H2
+        </button>
+        <button type="button" className="note-toolbar-button" title="Code" onClick={() => wrapSelection('`', '`')}>
+          <CodeIcon />
+        </button>
+        <button
+          type="button"
+          className="note-toolbar-button"
+          title="Internal link"
+          onClick={() => wrapSelection('[[', ']]')}
+        >
+          <LinkIcon />
+        </button>
+      </div>
       {viewMode === 'markdown' ? (
         <LinkAwareTextarea
+          ref={editorRef}
           className="note-editor-textarea"
           placeholder="Write your note in markdown... (type [[ to link another note)"
           value={content}
@@ -197,6 +308,7 @@ export default function NoteEditor() {
       ) : (
         <div className="note-editor-split">
           <LinkAwareTextarea
+            ref={editorRef}
             className="note-editor-textarea note-editor-textarea-split"
             placeholder="Write your note in markdown... (type [[ to link another note)"
             value={content}
