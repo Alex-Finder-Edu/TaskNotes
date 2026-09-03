@@ -240,6 +240,7 @@ function FolderNode({ folder, autoEditId, onAutoEditConsumed }) {
   const [editing, setEditing] = useState(folder.id === autoEditId)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const dragCounterRef = useRef(0)
 
   useEffect(() => {
     if (folder.id === autoEditId) {
@@ -265,6 +266,7 @@ function FolderNode({ folder, autoEditId, onAutoEditConsumed }) {
   function handleDrop(e) {
     e.preventDefault()
     e.stopPropagation()
+    dragCounterRef.current = 0
     setDragOver(false)
     const payload = readDragPayload(e)
     if (!payload) return
@@ -276,29 +278,41 @@ function FolderNode({ folder, autoEditId, onAutoEditConsumed }) {
   }
 
   return (
-    <div className="tree-node">
+    <div
+      className={`tree-node${dragOver ? ' drag-over' : ''}`}
+      onDragOver={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.dataTransfer.dropEffect = 'move'
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        // A counter (rather than a plain boolean) avoids flicker: entering
+        // and leaving nested elements (the row's buttons, note rows, etc.)
+        // fires dragenter/dragleave pairs that bubble here too, so the
+        // highlight should only clear once every nested "enter" has been
+        // matched by a "leave" - not on the first leave.
+        dragCounterRef.current += 1
+        setDragOver(true)
+      }}
+      onDragLeave={(e) => {
+        e.stopPropagation()
+        dragCounterRef.current -= 1
+        if (dragCounterRef.current <= 0) {
+          dragCounterRef.current = 0
+          setDragOver(false)
+        }
+      }}
+      onDrop={handleDrop}
+    >
       <div
-        className={`sidebar-item sidebar-folder-row${isSelected ? ' active' : ''}${dragOver ? ' drag-over' : ''}`}
+        className={`sidebar-item sidebar-folder-row${isSelected ? ' active' : ''}`}
         draggable={!editing}
         onDragStart={(e) => {
           e.stopPropagation()
           setDragPayload(e, 'folder', folder.id)
         }}
-        onDragOver={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          e.dataTransfer.dropEffect = 'move'
-        }}
-        onDragEnter={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          setDragOver(true)
-        }}
-        onDragLeave={(e) => {
-          e.stopPropagation()
-          setDragOver(false)
-        }}
-        onDrop={handleDrop}
       >
         {hasChildren ? (
           <button

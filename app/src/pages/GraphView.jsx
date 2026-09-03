@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useNotes } from '../context/NotesContext.jsx'
+import { getFolderPath, useNotes } from '../context/NotesContext.jsx'
 import { buildNoteGraph } from '../utils/links.js'
 import './GraphView.css'
+
+function folderPathLabel(folders, folderId) {
+  const path = getFolderPath(folders, folderId)
+  return path.length ? path.map((folder) => folder.name).join(' / ') : 'Root'
+}
 
 const WIDTH = 1000
 const HEIGHT = 700
@@ -194,10 +199,11 @@ function computeLayout(notes, edges) {
 }
 
 export default function GraphView() {
-  const { notes } = useNotes()
+  const { notes, folders } = useNotes()
   const navigate = useNavigate()
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const svgWrapperRef = useRef(null)
   const panRef = useRef(pan)
   const dragRef = useRef(null)
@@ -365,10 +371,16 @@ export default function GraphView() {
                         className="graph-node"
                         transform={`translate(${pos.x}, ${pos.y})`}
                         onClick={() => navigate(`/notes/${note.id}`)}
+                        onMouseEnter={() => setHoveredNoteId(note.id)}
+                        onMouseLeave={() => setHoveredNoteId((id) => (id === note.id ? null : id))}
                       >
                         <circle r={nodeRadius} />
                         <text y={nodeRadius + 14}>{note.title}</text>
-                        <title>{note.title}</title>
+                        {hoveredNoteId === note.id && (
+                          <text className="graph-node-folder" y={nodeRadius + 28}>
+                            {folderPathLabel(folders, note.folderId)}
+                          </text>
+                        )}
                       </g>
                     )
                   })}

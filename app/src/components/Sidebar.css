@@ -132,6 +132,13 @@
 .tree-node {
   display: flex;
   flex-direction: column;
+  border-radius: 6px;
+}
+
+.tree-node.drag-over {
+  outline: 2px dashed var(--accent-border);
+  outline-offset: -2px;
+  background: var(--accent-bg);
 }
 
 .tree-children {
@@ -215,12 +222,6 @@
   background: var(--accent-bg);
   color: var(--accent);
   font-weight: 600;
-}
-
-.sidebar-folder-row.drag-over {
-  outline: 2px dashed var(--accent-border);
-  outline-offset: -2px;
-  background: var(--accent-bg);
 }
 
 .sidebar-row-actions {

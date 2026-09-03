@@ -266,6 +266,11 @@
   margin-top: 0;
 }
 
+.note-editor-preview p,
+.note-editor-preview blockquote {
+  white-space: pre-wrap;
+}
+
 .note-editor-preview h1,
 .note-editor-preview h2,
 .note-editor-preview h3,

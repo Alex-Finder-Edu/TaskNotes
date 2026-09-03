@@ -254,6 +254,28 @@ export default function NoteEditor() {
             </button>
           )}
         </div>
+        <div className="note-toolbar">
+          <button type="button" className="note-toolbar-button" title="Bold" onClick={() => wrapSelection('**', '**')}>
+            <b>B</b>
+          </button>
+          <button type="button" className="note-toolbar-button" title="Italic" onClick={() => wrapSelection('*', '*')}>
+            <i>I</i>
+          </button>
+          <button type="button" className="note-toolbar-button" title="Heading" onClick={toggleHeading}>
+            H2
+          </button>
+          <button type="button" className="note-toolbar-button" title="Code" onClick={() => wrapSelection('`', '`')}>
+            <CodeIcon />
+          </button>
+          <button
+            type="button"
+            className="note-toolbar-button"
+            title="Internal link"
+            onClick={() => wrapSelection('[[', ']]')}
+          >
+            <LinkIcon />
+          </button>
+        </div>
         <div className="note-view-toggle">
           <button
             type="button"
@@ -274,28 +296,6 @@ export default function NoteEditor() {
         </div>
       </div>
       {error && <p className="note-title-error">{error}</p>}
-      <div className="note-toolbar">
-        <button type="button" className="note-toolbar-button" title="Bold" onClick={() => wrapSelection('**', '**')}>
-          <b>B</b>
-        </button>
-        <button type="button" className="note-toolbar-button" title="Italic" onClick={() => wrapSelection('*', '*')}>
-          <i>I</i>
-        </button>
-        <button type="button" className="note-toolbar-button" title="Heading" onClick={toggleHeading}>
-          H2
-        </button>
-        <button type="button" className="note-toolbar-button" title="Code" onClick={() => wrapSelection('`', '`')}>
-          <CodeIcon />
-        </button>
-        <button
-          type="button"
-          className="note-toolbar-button"
-          title="Internal link"
-          onClick={() => wrapSelection('[[', ']]')}
-        >
-          <LinkIcon />
-        </button>
-      </div>
       {viewMode === 'markdown' ? (
         <LinkAwareTextarea
           ref={editorRef}
@@ -304,6 +304,7 @@ export default function NoteEditor() {
           value={content}
           onChange={setContent}
           notes={notes}
+          folders={folders}
         />
       ) : (
         <div className="note-editor-split">
@@ -314,6 +315,7 @@ export default function NoteEditor() {
             value={content}
             onChange={setContent}
             notes={notes}
+            folders={folders}
           />
           <div className="note-editor-preview">
             {content.trim() ? (

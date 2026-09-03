@@ -139,7 +139,7 @@ export function renderMarkdown(markdown, linkContext = {}) {
         i++
       }
       blocks.push(
-        <blockquote key={key}>{parseInline(quoteLines.join(' '), `q${key++}`, linkContext)}</blockquote>,
+        <blockquote key={key}>{parseInline(quoteLines.join('\n'), `q${key++}`, linkContext)}</blockquote>,
       )
       continue
     }
@@ -183,7 +183,7 @@ export function renderMarkdown(markdown, linkContext = {}) {
       paraLines.push(lines[i])
       i++
     }
-    blocks.push(<p key={key}>{parseInline(paraLines.join(' '), `p${key++}`, linkContext)}</p>)
+    blocks.push(<p key={key}>{parseInline(paraLines.join('\n'), `p${key++}`, linkContext)}</p>)
   }
 
   return blocks

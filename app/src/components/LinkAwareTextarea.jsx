@@ -1,5 +1,11 @@
 import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { getFolderPath } from '../context/NotesContext.jsx'
 import './LinkAwareTextarea.css'
+
+function folderPathLabel(folders, folderId) {
+  const path = getFolderPath(folders, folderId)
+  return path.length ? path.map((folder) => folder.name).join(' / ') : 'Root'
+}
 
 // Finds the [[ ... ]] pair the cursor currently sits inside, if any. Returns
 // the offsets needed both to filter the autocomplete list and to splice a
@@ -62,7 +68,7 @@ function measureCaretPosition(textarea, caretIndex) {
 }
 
 const LinkAwareTextarea = forwardRef(function LinkAwareTextarea(
-  { value, onChange, notes, className, placeholder },
+  { value, onChange, notes, folders, className, placeholder },
   forwardedRef,
 ) {
   const textareaRef = useRef(null)
@@ -183,7 +189,8 @@ const LinkAwareTextarea = forwardRef(function LinkAwareTextarea(
                 }}
                 onMouseEnter={() => setHighlightIndex(idx)}
               >
-                {note.title}
+                <span className="link-autocomplete-title">{note.title}</span>
+                <span className="link-autocomplete-path">{folderPathLabel(folders, note.folderId)}</span>
               </li>
             ))
           )}

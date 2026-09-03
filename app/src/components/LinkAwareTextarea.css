@@ -27,19 +27,41 @@
 }
 
 .link-autocomplete-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   padding: 6px 8px;
   border-radius: 5px;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.link-autocomplete-title {
   color: var(--text-h);
   font-size: 13px;
   white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
+}
+
+.link-autocomplete-path {
+  color: var(--text);
+  opacity: 0.65;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .link-autocomplete-item.active,
 .link-autocomplete-item:hover {
   background: var(--accent-bg);
+}
+
+.link-autocomplete-item.active .link-autocomplete-title,
+.link-autocomplete-item:hover .link-autocomplete-title,
+.link-autocomplete-item.active .link-autocomplete-path,
+.link-autocomplete-item:hover .link-autocomplete-path {
   color: var(--accent);
 }
 
