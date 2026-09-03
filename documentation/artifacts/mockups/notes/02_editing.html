@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mockup - Notes: Editing</title>
+<link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+<span class="mockup-note">Mockup - Notes app, editing view</span>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>
+      Timeline
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-link active" href="02_editing.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>
+        Notes
+      </a>
+      <a class="sidebar-nav-link" href="../tasks/01_today.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg>
+        Tasks
+      </a>
+      <a class="sidebar-nav-link" href="../tasks/02_calendar_day.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /><circle cx="15.5" cy="15.5" r="3.2" /><path d="M15.5 14v1.6l1 .8" /></svg>
+        Calendar
+      </a>
+    </nav>
+    <div class="sidebar-list">
+      <div class="sidebar-item active"><span>Q3 Planning</span></div>
+      <div class="sidebar-item"><span>Budget Draft</span></div>
+      <div class="sidebar-item"><span>Reading List</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <input
+        type="text"
+        value="Q3 Planning"
+        style="font:inherit; font-size:28px; font-weight:500; color:var(--text-h); border:none; outline:none; background:none; flex:1; letter-spacing:-0.4px;"
+      />
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8" /><path d="M7 3v5h8" /></svg>
+          Save
+        </button>
+      </div>
+    </div>
+
+    <div class="note-toolbar">
+      <button type="button" class="icon-button active" title="Preview / Edit toggle">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1" /><rect x="13" y="4" width="8" height="16" rx="1" /></svg>
+      </button>
+      <span class="note-toolbar-sep"></span>
+      <button type="button" class="icon-button" title="Bold"><b>B</b></button>
+      <button type="button" class="icon-button" title="Italic"><i>I</i></button>
+      <button type="button" class="icon-button" title="Heading">H2</button>
+      <button type="button" class="icon-button" title="Code">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6" /><polyline points="15 6 21 12 15 18" /></svg>
+      </button>
+      <button type="button" class="icon-button" title="Internal link">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.5 1.5" /><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.5-1.5" /></svg>
+      </button>
+    </div>
+
+    <div class="note-editor-area" contenteditable="true">Goals for the quarter, aligned with the roadmap review on `Sept 12`.
+
+## Objectives
+Ship the graph view, tighten onboarding, and close out the [[Budget Draft]] before the leadership sync.
+
+## Open questions
+Do we need a migration path for existing vaults? See [[Persistence Notes]] for the current thinking.
+
+## Next steps
+Draft the task list for this note in *Tasks*, tagged with a weekly review reminder.</div>
+
+    <p class="subtitle">Markdown supported &middot; use <code>[[Note Title]]</code> to link another note</p>
+  </main>
+</div>
+
+<script src="../shared.js"></script>
+</body>
+</html>

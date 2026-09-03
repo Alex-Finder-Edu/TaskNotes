@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mockup - Notes: Theme Settings</title>
+<link rel="stylesheet" href="../shared.css" />
+</head>
+<body>
+<span class="mockup-note">Mockup - Theme switching &amp; customization (click a card/swatch to preview live)</span>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>
+      Timeline
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-link" href="01_reading.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /></svg>
+        Notes
+      </a>
+      <a class="sidebar-nav-link" href="../tasks/01_today.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg>
+        Tasks
+      </a>
+      <a class="sidebar-nav-link" href="../tasks/02_calendar_day.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /><circle cx="15.5" cy="15.5" r="3.2" /><path d="M15.5 14v1.6l1 .8" /></svg>
+        Calendar
+      </a>
+    </nav>
+    <div class="sidebar-footer" style="margin-top:auto; border-top:1px solid var(--border); padding-top:10px;">
+      <button type="button" class="sidebar-nav-link active">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1Z" /></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main" style="max-width:640px;">
+    <div class="main-header-text">
+      <h1>Appearance</h1>
+      <p class="subtitle">Pick a theme and accent color for reading and writing notes</p>
+    </div>
+
+    <div class="settings-section">
+      <h3>Theme</h3>
+      <div class="theme-grid">
+        <button type="button" class="theme-card selected" data-theme="light">
+          <span class="theme-card-preview" style="background:#fff;">
+            <span class="p-side" style="background:#f4f3ec;"></span>
+            <span class="p-main" style="background:#fff; position:relative;"><span style="position:absolute; top:8px; left:8px; width:60%; height:6px; border-radius:3px; background:#aa3bff;"></span></span>
+          </span>
+          <span class="theme-card-label">Light</span>
+        </button>
+
+        <button type="button" class="theme-card" data-theme="dark">
+          <span class="theme-card-preview" style="background:#16171d;">
+            <span class="p-side" style="background:#1f2028;"></span>
+            <span class="p-main" style="background:#16171d; position:relative;"><span style="position:absolute; top:8px; left:8px; width:60%; height:6px; border-radius:3px; background:#c084fc;"></span></span>
+          </span>
+          <span class="theme-card-label">Dark</span>
+        </button>
+
+        <button type="button" class="theme-card" data-theme="">
+          <span class="theme-card-preview" style="background:linear-gradient(90deg, #fff 50%, #16171d 50%);">
+            <span class="p-side" style="background:linear-gradient(90deg, #f4f3ec 50%, #1f2028 50%);"></span>
+            <span class="p-main"></span>
+          </span>
+          <span class="theme-card-label">System</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Accent color</h3>
+      <div class="accent-row">
+        <button type="button" class="accent-swatch selected" style="background:#aa3bff;" title="Violet (default)"></button>
+        <button type="button" class="accent-swatch" style="background:#2563eb;" title="Blue"></button>
+        <button type="button" class="accent-swatch" style="background:#1a9c6e;" title="Forest"></button>
+        <button type="button" class="accent-swatch" style="background:#e5487a;" title="Rose"></button>
+        <button type="button" class="accent-swatch" style="background:#d97706;" title="Amber"></button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Reading &amp; editing</h3>
+      <div class="card" style="padding:4px 16px;">
+        <div class="toggle-row">
+          <div>
+            <p style="color:var(--text-h); font-size:13.5px; font-weight:500;">Larger note text</p>
+            <p class="subtitle">Increase base font size for reading notes</p>
+          </div>
+          <span class="switch"><span class="switch-knob"></span></span>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <p style="color:var(--text-h); font-size:13.5px; font-weight:500;">Open notes in preview mode</p>
+            <p class="subtitle">Show rendered markdown first, edit on demand</p>
+          </div>
+          <span class="switch on"><span class="switch-knob"></span></span>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <p style="color:var(--text-h); font-size:13.5px; font-weight:500;">Match system theme automatically</p>
+            <p class="subtitle">Switch between light and dark with your OS</p>
+          </div>
+          <span class="switch"><span class="switch-knob"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Preview</h3>
+      <div class="card">
+        <h2 style="margin-bottom:10px;">Q3 Planning</h2>
+        <p style="line-height:160%;">Ship the graph view, tighten onboarding, and close out the <a class="wikilink" href="#">[[Budget Draft]]</a> before the leadership sync.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../shared.js"></script>
+</body>
+</html>

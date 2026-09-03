@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mockups</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  body { padding: 40px; max-width: 720px; margin: 0 auto; }
+  .group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+  .group a {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 9px;
+    text-decoration: none; color: var(--text-h);
+  }
+  .group a:hover { border-color: var(--accent-border); background: var(--accent-bg); }
+  .group a span { font-size: 13px; color: var(--text); font-weight: 400; }
+</style>
+</head>
+<body>
+  <h1>Mockups</h1>
+  <p class="subtitle" style="margin-bottom:24px;">Static HTML mockups for prompts/16_generate_mockups_task_and_notes_app.txt, styled with the app's real design tokens (app/src/index.css).</p>
+
+  <div class="group">
+    <h2>Tasks (TODO)</h2>
+    <a href="tasks/01_today.html">
+      Today / Tomorrow / This Week
+      <span>Tabbed task list, one-time &amp; repeating tasks, notes linked to tasks, add/edit/delete (CRUD) modals</span>
+    </a>
+    <a href="tasks/02_calendar_day.html">
+      Calendar (Day view)
+      <span>Google Calendar-style time grid for the selected day; click an empty slot to add a task there, click a task to edit it</span>
+    </a>
+  </div>
+
+  <div class="group">
+    <h2>Notes</h2>
+    <a href="notes/01_reading.html">
+      Reading view
+      <span>Clean note rendering, internal links, backlinks section</span>
+    </a>
+    <a href="notes/02_editing.html">
+      Editing view
+      <span>Markdown editor toolbar and raw editing area</span>
+    </a>
+    <a href="notes/03_theme_settings.html">
+      Theme settings
+      <span>Switch and customize theme (light/dark/system + accent color)</span>
+    </a>
+  </div>
+</body>
+</html>
