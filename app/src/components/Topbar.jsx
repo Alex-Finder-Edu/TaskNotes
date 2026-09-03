@@ -37,13 +37,23 @@ function GraphIcon() {
   )
 }
 
-// A small calendar-like badge showing today's day-of-month inside it,
-// rather than a generic calendar glyph - the date itself is the point.
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
+
+function formatDateBadge(date) {
+  const year = date.getFullYear()
+  const month = MONTH_LABELS[date.getMonth()]
+  const day = String(date.getDate()).padStart(2, '0')
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' })
+  return `${year} ${month} ${day} / ${weekday}`
+}
+
+// A small calendar-like badge showing today's full date inside it, rather
+// than a generic calendar glyph - the date itself is the point.
 function DateIcon({ date }) {
   return (
     <div className="topbar-date-icon" title={date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}>
       <span className="topbar-date-icon-header" />
-      <span className="topbar-date-icon-day">{date.getDate()}</span>
+      <span className="topbar-date-icon-day">{formatDateBadge(date)}</span>
     </div>
   )
 }

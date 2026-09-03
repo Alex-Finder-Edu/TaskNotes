@@ -17,8 +17,8 @@
 .topbar-date-icon {
   display: flex;
   flex-direction: column;
-  width: 26px;
-  height: 26px;
+  width: fit-content;
+  height: 30px;
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
@@ -35,15 +35,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 8px;
+  font-family: var(--mono);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
   color: var(--text-h);
 }
 
 .topbar-clock {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
@@ -93,7 +97,8 @@
     padding: 10px 16px;
   }
 
-  .topbar-brand {
+  .topbar-brand,
+  .topbar-clock {
     font-size: 18px;
   }
 

@@ -1,6 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useTasks } from '../context/TasksContext.jsx'
-import { addDays, formatDayLabel, formatTimeLabel, isOverdue, taskOccursOn, thisWeekDates } from '../utils/taskDates.js'
+import {
+  addDays,
+  formatDayLabel,
+  formatTimeLabel,
+  isoDate,
+  isOverdue,
+  isTaskDoneOn,
+  taskOccursOn,
+  thisWeekDates,
+} from '../utils/taskDates.js'
 import TaskModal from '../components/TaskModal.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
 import './Tasks.css'
@@ -51,21 +60,22 @@ function PencilIcon() {
   )
 }
 
-function TaskCard({ task, onEdit }) {
+function TaskCard({ task, occurrenceDate, onEdit }) {
   const { toggleTaskDone } = useTasks()
   const overdue = isOverdue(task)
+  const done = isTaskDoneOn(task, occurrenceDate)
   const timeLabel =
     task.repeat === 'daily' ? formatTimeLabel(task.scheduledTime) : task.dueTimeEnabled ? formatTimeLabel(task.dueTime) : null
 
   return (
-    <div className={`task-card${task.done ? ' done' : ''}`}>
+    <div className={`task-card${done ? ' done' : ''}`}>
       <button
         type="button"
-        className={`task-check${task.done ? ' checked' : ''}`}
-        title={task.done ? 'Mark as not done' : 'Mark as done'}
-        onClick={() => toggleTaskDone(task.id)}
+        className={`task-check${done ? ' checked' : ''}`}
+        title={done ? 'Mark as not done' : 'Mark as done'}
+        onClick={() => toggleTaskDone(task.id, isoDate(occurrenceDate))}
       >
-        {task.done && <CheckIcon />}
+        {done && <CheckIcon />}
       </button>
       <div className="task-body">
         <span className="task-title">{task.title}</span>
@@ -136,13 +146,6 @@ export default function Tasks() {
 
   return (
     <main className="tasks-page">
-      <div className="tasks-header">
-        <div className="tasks-header-text">
-          <h1>Tasks</h1>
-          <p className="tasks-subtitle">One-time and repeating tasks</p>
-        </div>
-      </div>
-
       <button type="button" className="btn btn-primary tasks-new-button" onClick={() => setModalMode('create')}>
         <PlusIcon />
         New Task
@@ -170,7 +173,7 @@ export default function Tasks() {
         ) : (
           <div className="task-list">
             {todayTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onEdit={setModalMode} />
+              <TaskCard key={task.id} task={task} occurrenceDate={today} onEdit={setModalMode} />
             ))}
           </div>
         ))}
@@ -181,7 +184,7 @@ export default function Tasks() {
         ) : (
           <div className="task-list">
             {tomorrowTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onEdit={setModalMode} />
+              <TaskCard key={task.id} task={task} occurrenceDate={tomorrow} onEdit={setModalMode} />
             ))}
           </div>
         ))}
@@ -196,7 +199,12 @@ export default function Tasks() {
                 <p className="day-group-label">{formatDayLabel(date, today)}</p>
                 <div className="task-list">
                   {dayTasks.map((task) => (
-                    <TaskCard key={`${date.toISOString()}-${task.id}`} task={task} onEdit={setModalMode} />
+                    <TaskCard
+                      key={`${date.toISOString()}-${task.id}`}
+                      task={task}
+                      occurrenceDate={date}
+                      onEdit={setModalMode}
+                    />
                   ))}
                 </div>
               </div>

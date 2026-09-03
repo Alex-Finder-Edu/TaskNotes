@@ -21,14 +21,14 @@ export function addDays(date, days) {
   return d
 }
 
-// The days making up "This Week": today through the coming Saturday (the
-// end of the current Sunday-start week) - matching the range shown in the
-// calendar mockup, so today's tasks are always included.
+// The days making up "This Week": today through the coming Sunday (the end
+// of a Monday-start week - if today already is Sunday, that's the only day
+// left), so today's tasks are always included.
 export function thisWeekDates(today) {
   const start = toDateOnly(today)
-  const daysUntilSaturday = 6 - start.getDay()
+  const daysUntilSunday = (7 - start.getDay()) % 7
   const dates = []
-  for (let i = 0; i <= daysUntilSaturday; i++) {
+  for (let i = 0; i <= daysUntilSunday; i++) {
     dates.push(addDays(start, i))
   }
   return dates
@@ -48,6 +48,15 @@ export function formatDayLabel(date, today) {
   const weekday = date.toLocaleDateString(undefined, { weekday: 'long' })
   const rest = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
   return isToday ? `${weekday}, ${rest} - Today` : `${weekday}, ${rest}`
+}
+
+// Whether `task` is done as of `date`: a daily-repeating task tracks
+// completion per calendar day in `doneDates`, since checking it off should
+// only complete that one occurrence, not every future recurrence; any other
+// task just has a single `done` flag.
+export function isTaskDoneOn(task, date) {
+  if (task.repeat === 'daily') return (task.doneDates ?? []).includes(isoDate(date))
+  return task.done
 }
 
 export function formatTimeLabel(hhmm) {
