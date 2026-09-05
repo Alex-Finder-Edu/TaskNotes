@@ -1,22 +1,11 @@
 import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getFolderPath } from '../context/NotesContext.jsx'
+import { findLinkContext } from '../utils/linkContext.js'
 import './LinkAwareTextarea.css'
 
 function folderPathLabel(folders, folderId) {
   const path = getFolderPath(folders, folderId)
   return path.length ? path.map((folder) => folder.name).join(' / ') : 'Root'
-}
-
-// Finds the [[ ... ]] pair the cursor currently sits inside, if any. Returns
-// the offsets needed both to filter the autocomplete list and to splice a
-// chosen note's title back into the text.
-function findLinkContext(value, cursor) {
-  const openIdx = value.lastIndexOf('[[', cursor)
-  if (openIdx === -1) return null
-  const queryStart = openIdx + 2
-  const closeIdx = value.indexOf(']]', queryStart)
-  if (closeIdx === -1 || cursor < queryStart || cursor > closeIdx) return null
-  return { queryStart, end: closeIdx + 2, query: value.slice(queryStart, cursor) }
 }
 
 // Measures where the caret renders on screen by mirroring the textarea's

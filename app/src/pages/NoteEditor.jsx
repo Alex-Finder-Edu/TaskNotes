@@ -5,6 +5,7 @@ import { validateFilename } from '../utils/filename.js'
 import { renderMarkdown } from '../utils/markdown.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
 import LinkAwareTextarea from '../components/LinkAwareTextarea.jsx'
+import LiveMarkdownEditor from '../components/LiveMarkdownEditor.jsx'
 import './NoteEditor.css'
 
 function SaveIcon() {
@@ -47,6 +48,15 @@ function CodeIcon() {
   )
 }
 
+function LivePreviewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
 function LinkIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +79,7 @@ export default function NoteEditor() {
   const [content, setContent] = useState(existingNote?.content ?? '')
   const [error, setError] = useState(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const [viewMode, setViewMode] = useState('preview')
+  const [viewMode, setViewMode] = useState('live')
   const titleInputRef = useRef(null)
   const editorRef = useRef(null)
   const pendingSelectionRef = useRef(null)
@@ -279,6 +289,14 @@ export default function NoteEditor() {
         <div className="note-view-toggle">
           <button
             type="button"
+            className={`view-toggle-button${viewMode === 'live' ? ' active' : ''}`}
+            onClick={() => setViewMode('live')}
+          >
+            <LivePreviewIcon />
+            <span>Live Preview</span>
+          </button>
+          <button
+            type="button"
             className={`view-toggle-button${viewMode === 'preview' ? ' active' : ''}`}
             onClick={() => setViewMode('preview')}
           >
@@ -305,6 +323,16 @@ export default function NoteEditor() {
           onChange={setContent}
           notes={notes}
           folders={folders}
+        />
+      ) : viewMode === 'live' ? (
+        <LiveMarkdownEditor
+          ref={editorRef}
+          placeholder="Write your note in markdown... (type [[ to link another note)"
+          value={content}
+          onChange={setContent}
+          notes={notes}
+          folders={folders}
+          onNoteLinkClick={(id) => navigate(`/notes/${id}`)}
         />
       ) : (
         <div className="note-editor-split">

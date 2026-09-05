@@ -1,0 +1,141 @@
+.live-markdown-wrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.live-markdown-editor {
+  flex: 1;
+  width: 100%;
+  min-height: 60vh;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 145%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: auto;
+  cursor: text;
+}
+
+.live-markdown-editor:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.live-markdown-editor .lp-line {
+  min-height: 1.45em;
+}
+
+.live-markdown-editor .md-syntax {
+  display: none;
+}
+
+.live-markdown-editor .lp-heading {
+  color: var(--text-h);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.live-markdown-editor .lp-h1 {
+  font-size: 1.8em;
+}
+.live-markdown-editor .lp-h2 {
+  font-size: 1.5em;
+}
+.live-markdown-editor .lp-h3 {
+  font-size: 1.3em;
+}
+.live-markdown-editor .lp-h4 {
+  font-size: 1.15em;
+}
+.live-markdown-editor .lp-h5 {
+  font-size: 1.05em;
+}
+.live-markdown-editor .lp-h6 {
+  font-size: 1em;
+  opacity: 0.85;
+}
+
+.live-markdown-editor .lp-quote {
+  padding-left: 12px;
+  border-left: 3px solid var(--border);
+  color: var(--text);
+}
+
+.live-markdown-editor .lp-list-bullet,
+.live-markdown-editor .lp-list-ordered {
+  padding-left: 1.4em;
+  position: relative;
+}
+
+.live-markdown-editor .lp-list-bullet::before,
+.live-markdown-editor .lp-list-ordered::before {
+  content: attr(data-marker);
+  position: absolute;
+  left: 0;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.live-markdown-editor .lp-hr {
+  height: 0;
+  margin: 0.6em 0;
+  border-top: 2px solid var(--border);
+}
+
+.live-markdown-editor .lp-fence-line {
+  color: var(--text);
+  opacity: 0.55;
+  font-family: var(--mono);
+}
+
+.live-markdown-editor .lp-code-line {
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.95em;
+}
+
+.live-markdown-editor code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.live-markdown-editor .md-internal-link {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.live-markdown-editor .md-internal-link-broken {
+  background: transparent;
+  color: #e5484d;
+  border-bottom: 1px dashed #e5484d;
+}
+
+.live-markdown-editor .md-external-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.live-markdown-placeholder {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  color: var(--text);
+  opacity: 0.55;
+  font-family: var(--sans);
+  font-size: 15px;
+  pointer-events: none;
+}
