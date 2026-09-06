@@ -32,11 +32,13 @@ cursor is at character 47 of the note" and "the cursor is in this DOM text
 node at this offset" by walking `textContent` lengths, with no special
 casing needed for what's currently hidden.
 
-The currently active line (wherever the cursor is) skips decoration
-entirely and renders as flat, unstyled text - this is deliberate: it's the
-simplest way to guarantee the raw markdown is fully visible and editable
-exactly as typed, matching the prompt's "markdown characters will be
-displayed when cursor is placed on the same line" requirement.
+Originally, the line the cursor was on skipped decoration entirely and
+rendered as flat, unstyled raw text. That was simple but heavy-handed -
+formatting a whole line away just to reveal one `#` or `**` made editing
+feel jumpy. [`21_format_in_live_preview_mode.md`](./21_format_in_live_preview_mode.md)
+replaces that with per-token syntax reveal: formatting stays applied even on
+the active line/run, and only the specific markdown syntax the cursor
+touches becomes visible.
 
 ## Editing without letting the browser touch the DOM
 

@@ -37,6 +37,11 @@
   display: none;
 }
 
+.live-markdown-editor .md-syntax-visible {
+  display: inline;
+  opacity: 0.55;
+}
+
 .live-markdown-editor .lp-heading {
   color: var(--text-h);
   font-weight: 700;
@@ -127,6 +132,7 @@
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
+  cursor: pointer;
 }
 
 .live-markdown-placeholder {

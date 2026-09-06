@@ -37,6 +37,7 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
   const lastCaretPosRef = useRef({ top: 0, left: 0 })
 
   const [activeLineIndex, setActiveLineIndex] = useState(null)
+  const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 })
   const [linkCtx, setLinkCtx] = useState(null)
   const [highlightIndex, setHighlightIndex] = useState(0)
   const [caretPos, setCaretPos] = useState({ top: 0, left: 0 })
@@ -53,9 +54,15 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
     return pool.slice(0, 50)
   }, [linkCtx, notes])
 
-  function setActiveLineFromOffset(offset) {
-    const lineIndex = getLineIndexForOffset(valueRef.current, offset)
+  // Tracks both which line the caret/selection is on (activeLineIndex) and
+  // its exact raw-offset bounds (selectionRange), since Live Preview needs
+  // to re-render not just when the caret moves to a different line, but also
+  // when it moves between formatted runs within the same line (see
+  // liveMarkdownDecorate.jsx's per-token `activeRange` handling).
+  function updateActiveSelection(start, end) {
+    const lineIndex = getLineIndexForOffset(valueRef.current, start)
     setActiveLineIndex((prev) => (prev === lineIndex ? prev : lineIndex))
+    setSelectionRange((prev) => (prev.start === start && prev.end === end ? prev : { start, end }))
   }
 
   function applySelection(start, end) {
@@ -71,7 +78,7 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
     sel.addRange(range)
     selectionStartRef.current = start
     selectionEndRef.current = end
-    setActiveLineFromOffset(start)
+    updateActiveSelection(start, end)
   }
 
   useImperativeHandle(
@@ -159,7 +166,7 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
       const focus = domPositionToRawOffset(root, sel.focusNode, sel.focusOffset)
       selectionStartRef.current = Math.min(anchor, focus)
       selectionEndRef.current = Math.max(anchor, focus)
-      setActiveLineFromOffset(selectionStartRef.current)
+      updateActiveSelection(selectionStartRef.current, selectionEndRef.current)
       updateLinkContextAndCaretRect()
     }
     document.addEventListener('selectionchange', handleSelectionChange)
@@ -342,6 +349,14 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
 
   const lines = value.split('\n')
   const fenceStates = computeFenceStates(lines)
+  const lineStarts = []
+  {
+    let offset = 0
+    for (const lineText of lines) {
+      lineStarts.push(offset)
+      offset += lineText.length + 1
+    }
+  }
 
   return (
     <div className="live-markdown-wrapper" ref={wrapperRef}>
@@ -362,17 +377,20 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
           let content
           let marker
 
-          if (isActive) {
-            content = lineText
-            if (fenceState.insideFence || fenceState.isFenceDelimiter) className += ' lp-code-line'
-          } else if (fenceState.isFenceDelimiter) {
+          if (fenceState.isFenceDelimiter) {
             className += ' lp-fence-line'
             content = lineText
           } else if (fenceState.insideFence) {
             className += ' lp-code-line'
             content = lineText
           } else {
-            const decorated = decorateLine(lineText, `l${i}`, linkContext)
+            const activeRange = isActive
+              ? {
+                  start: Math.max(0, Math.min(selectionRange.start - lineStarts[i], lineText.length)),
+                  end: Math.max(0, Math.min(selectionRange.end - lineStarts[i], lineText.length)),
+                }
+              : null
+            const decorated = decorateLine(lineText, `l${i}`, linkContext, activeRange)
             className += ` ${decorated.className}`
             content = decorated.content
             marker = decorated.marker
