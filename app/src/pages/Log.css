@@ -1,0 +1,154 @@
+.log-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.log-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.log-view-tabs {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  width: fit-content;
+}
+
+.log-view-tab {
+  padding: 6px 13px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.log-view-tab.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.log-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg);
+}
+
+.search-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.search-field svg {
+  flex: none;
+  opacity: 0.55;
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 60px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-h);
+}
+
+.search-field input:focus {
+  outline: none;
+}
+
+.search-field-clear {
+  border: none;
+  background: none;
+  color: var(--text);
+  opacity: 0.6;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 999px;
+  flex: none;
+}
+
+.search-field-clear:hover {
+  opacity: 1;
+  background: var(--code-bg);
+}
+
+.log-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text);
+  opacity: 0.6;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  margin: 0;
+}
+
+.log-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-group-label {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+
+.chip-duration {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.chip-tag {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.chip-tag:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}

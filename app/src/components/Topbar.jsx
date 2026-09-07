@@ -23,6 +23,17 @@ function TasksIcon() {
   )
 }
 
+function LogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="M9 3v2a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V3" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="16" x2="13" y2="16" />
+    </svg>
+  )
+}
+
 function GraphIcon() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -94,6 +105,10 @@ export default function Topbar() {
         <NavLink to="/tasks" className={({ isActive }) => `topbar-nav-link${isActive ? ' active' : ''}`}>
           <TasksIcon />
           Tasks
+        </NavLink>
+        <NavLink to="/log" className={({ isActive }) => `topbar-nav-link${isActive ? ' active' : ''}`}>
+          <LogIcon />
+          Log
         </NavLink>
         <NavLink to="/graph" className={({ isActive }) => `topbar-nav-link${isActive ? ' active' : ''}`}>
           <GraphIcon />
