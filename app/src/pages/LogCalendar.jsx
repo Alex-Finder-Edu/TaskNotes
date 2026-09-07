@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLog } from '../context/LogContext.jsx'
 import { addDays, formatTimeLabel, isoDate } from '../utils/taskDates.js'
@@ -6,8 +6,13 @@ import { collectTagPool } from '../utils/logDates.js'
 import LogEventModal from '../components/LogEventModal.jsx'
 import './LogCalendar.css'
 
-const DAY_START = 6 // 6 AM
-const DAY_END = 22 // 10 PM
+// The full day is shown (and scrollable/interactable end to end) rather
+// than a truncated 6 AM-10 PM window - see prompts/26_fix_calendar_view.txt
+// follow-up. DEFAULT_SCROLL_HOUR is just where the view scrolls to on load
+// so the visible portion still starts somewhere useful.
+const DAY_START = 0 // midnight
+const DAY_END = 24 // midnight next day
+const DEFAULT_SCROLL_HOUR = 6
 const PX_PER_HOUR = 60
 
 function pad(n) {
@@ -67,6 +72,7 @@ export default function LogCalendar() {
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [modalMode, setModalMode] = useState(null) // null | 'create' | event being edited
   const [initialStart, setInitialStart] = useState(null)
+  const calBodyRef = useRef(null)
 
   const dateStr = isoDate(currentDate)
   const isToday = dateStr === isoDate(new Date())
@@ -76,6 +82,19 @@ export default function LogCalendar() {
   const now = new Date()
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
   const totalHeight = (DAY_END - DAY_START) * PX_PER_HOUR
+
+  // The grid covers the full 24 hours so every slot is reachable, but a
+  // freshly-opened or newly-navigated-to day still starts scrolled to
+  // roughly where the day's activity is, instead of dropping the user at
+  // midnight every time.
+  useEffect(() => {
+    const el = calBodyRef.current
+    if (!el) return
+    const targetMinutes = isToday ? nowMinutes : DEFAULT_SCROLL_HOUR * 60
+    el.scrollTop = Math.max(0, (targetMinutes / 60) * PX_PER_HOUR - 120)
+    // Only re-run when the selected day changes, not on every clock tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateStr])
 
   function handleSlotClick(time) {
     setInitialStart({ date: dateStr, time })
@@ -104,7 +123,7 @@ export default function LogCalendar() {
   }
 
   return (
-    <main className="log-page">
+    <main className="log-page log-calendar-page">
       <div className="log-page-header">
         <div className="log-view-tabs">
           <Link className="log-view-tab" to="/log">
@@ -149,7 +168,7 @@ export default function LogCalendar() {
 
       <p className="cal-hint">Click an empty time slot to log an event starting there. Click an existing event to edit it.</p>
 
-      <div className="cal-body">
+      <div className="cal-body" ref={calBodyRef}>
         <div className="cal-time-col" style={{ height: totalHeight }}>
           {HOURS.map((h) => (
             <div key={h} className="cal-hour-label" style={{ top: (h - DAY_START) * PX_PER_HOUR }}>

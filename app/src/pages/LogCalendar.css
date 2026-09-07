@@ -1,3 +1,14 @@
+/* Only the interval grid (.cal-body) should scroll - the tabs, Log Event
+   button, date nav and hint above it stay fixed on screen. Shrinking this
+   page down to whatever height the app-content flex column actually gives
+   it (rather than growing past the viewport, like the List page allows)
+   is what lets .cal-body's own overflow take over instead of the whole
+   document scrolling. */
+.log-calendar-page {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .cal-header {
   display: flex;
   align-items: center;
@@ -36,7 +47,10 @@
   display: flex;
   border: 1px solid var(--border);
   border-radius: 10px;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .cal-time-col {

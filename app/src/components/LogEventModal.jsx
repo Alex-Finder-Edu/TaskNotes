@@ -38,13 +38,20 @@ function initialFormState(event, initialStart) {
   const now = new Date()
   const defaultDate = initialStart?.date ?? todayISO(now)
   const defaultStartTime = initialStart?.time ?? nowTime(now)
-  const defaultEnd = new Date(now.getTime() + 60 * 60 * 1000)
+
+  // A slot clicked on the calendar is a highlighted 30-minute interval, so
+  // the default End should land exactly at the end of that interval rather
+  // than always an hour out; opening the modal with no slot (the "Log
+  // Event" button) keeps the original 1-hour-from-now default.
+  const defaultStart = initialStart ? new Date(`${defaultDate}T${defaultStartTime}`) : now
+  const defaultEnd = new Date(defaultStart.getTime() + (initialStart ? 30 : 60) * 60 * 1000)
+
   return {
     title: event?.title ?? '',
     notes: event?.notes ?? '',
     startDate: event?.startDate ?? defaultDate,
     startTime: event?.startTime ?? defaultStartTime,
-    endDate: event?.endDate ?? defaultDate,
+    endDate: event?.endDate ?? todayISO(defaultEnd),
     endTime: event?.endTime ?? nowTime(defaultEnd),
     tags: event?.tags ?? [],
   }
