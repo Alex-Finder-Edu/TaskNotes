@@ -57,6 +57,16 @@ function LivePreviewIcon() {
   )
 }
 
+function TableIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <line x1="9" y1="4" x2="9" y2="20" />
+    </svg>
+  )
+}
+
 function LinkIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -187,6 +197,36 @@ export default function NoteEditor() {
     }
   }
 
+  // Inserts a 2x2 table (with the top row formatted as a header) at the
+  // current caret, padding it with blank lines so it starts life as its own
+  // block - otherwise renderMarkdown's block parser could fuse it into a
+  // preceding/following paragraph.
+  function insertTable() {
+    const el = editorRef.current
+    if (!el) return
+    const { selectionStart: start, selectionEnd: end, value } = el
+    const before = value.slice(0, start)
+    const after = value.slice(end)
+    const table = ['| Header 1 | Header 2 |', '| --- | --- |', '| Cell 1 | Cell 2 |', '| Cell 3 | Cell 4 |'].join('\n')
+
+    const prefix = before === '' || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n'
+    const suffix = after === '' || after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n'
+    const insertion = `${prefix}${table}${suffix}`
+
+    setContent(before + insertion + after)
+    const caret = before.length + insertion.length
+    pendingSelectionRef.current = { start: caret, end: caret }
+  }
+
+  // Rewrites the [startLine, endLine] raw-line range a table occupies with
+  // its updated markdown, used by MarkdownTable in the rendered preview to
+  // persist row/column/sort edits back into the note.
+  function handleTableChange(startLine, endLine, newTableLines) {
+    const lines = content.split('\n')
+    const updated = [...lines.slice(0, startLine), ...newTableLines, ...lines.slice(endLine + 1)]
+    setContent(updated.join('\n'))
+  }
+
   function handleSave() {
     const result = validateFilename(title)
     if (!result.valid) {
@@ -285,6 +325,9 @@ export default function NoteEditor() {
           >
             <LinkIcon />
           </button>
+          <button type="button" className="note-toolbar-button" title="Insert table" onClick={insertTable}>
+            <TableIcon />
+          </button>
         </div>
         <div className="note-view-toggle">
           <button
@@ -347,7 +390,11 @@ export default function NoteEditor() {
           />
           <div className="note-editor-preview">
             {content.trim() ? (
-              renderMarkdown(content, { notes, onNoteLinkClick: (id) => navigate(`/notes/${id}`) })
+              renderMarkdown(content, {
+                notes,
+                onNoteLinkClick: (id) => navigate(`/notes/${id}`),
+                onTableChange: handleTableChange,
+              })
             ) : (
               <p className="note-editor-preview-empty">Nothing to preview yet.</p>
             )}

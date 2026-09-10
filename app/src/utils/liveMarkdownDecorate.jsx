@@ -13,6 +13,8 @@
 // `rangesOverlap`), so e.g. editing one bold phrase doesn't reveal the
 // markers of another bold phrase on the same line.
 
+import { isTableRow, isTableSeparator, splitTableRow, parseTableAligns } from './markdown.jsx'
+
 const SAFE_URL_PATTERN = /^(https?:|mailto:|#|\/)/i
 
 function safeHref(url) {
@@ -156,6 +158,167 @@ export function computeFenceStates(lines) {
     if (isFenceDelimiter) inFence = !inFence
   }
   return states
+}
+
+function isFenced(fenceStates, index) {
+  return index >= fenceStates.length || fenceStates[index].insideFence || fenceStates[index].isFenceDelimiter
+}
+
+// Precomputes the Markdown table blocks in `lines` - mirrors the block-level
+// table detection in markdown.jsx's renderMarkdown so Live Preview
+// recognizes the exact same tables Side Preview does. Each block records the
+// raw-line range of its header/separator/body rows plus its column count and
+// alignments, which both `computeTableStates` (per-line decoration) and
+// LiveMarkdownEditor's row/column add-remove controls key off of.
+export function computeTableBlocks(lines, fenceStates) {
+  const blocks = []
+  let i = 0
+  while (i < lines.length) {
+    if (isFenced(fenceStates, i)) {
+      i++
+      continue
+    }
+    const trimmed = lines[i].trim()
+    if (isTableRow(trimmed) && !isFenced(fenceStates, i + 1) && isTableSeparator(lines[i + 1]?.trim() ?? '')) {
+      const headerCells = splitTableRow(trimmed)
+      const aligns = parseTableAligns(lines[i + 1])
+      if (headerCells.length === aligns.length) {
+        const headerLine = i
+        const sepLine = i + 1
+        let j = sepLine + 1
+        while (j < lines.length && !isFenced(fenceStates, j) && isTableRow(lines[j].trim())) j++
+        blocks.push({ headerLine, sepLine, endLine: j - 1, colCount: headerCells.length, aligns })
+        i = j
+        continue
+      }
+    }
+    i++
+  }
+  return blocks
+}
+
+// Per-line lookup derived from computeTableBlocks: whether a line is a
+// table's header, separator or body row, its column alignments, and the
+// block it belongs to (for the row/column controls' bounding box).
+export function computeTableStates(lines, fenceStates) {
+  const states = new Array(lines.length).fill(null)
+  for (const block of computeTableBlocks(lines, fenceStates)) {
+    states[block.headerLine] = { rowType: 'header', aligns: block.aligns, block }
+    states[block.sepLine] = { rowType: 'separator', aligns: block.aligns, block }
+    for (let r = block.sepLine + 1; r <= block.endLine; r++) {
+      states[r] = { rowType: 'body', aligns: block.aligns, block }
+    }
+  }
+  return states
+}
+
+// Splits a table row's raw text into alternating text/pipe tokens, keeping
+// every character (escaped pipes stay glued to their surrounding text) so
+// the decorated output's textContent still matches the raw line exactly.
+function splitRowIntoTokens(line) {
+  const PIPE_SPLIT = /\\\||\|/g
+  const tokens = []
+  let last = 0
+  let match
+  while ((match = PIPE_SPLIT.exec(line))) {
+    if (match[0] === '|') {
+      tokens.push({ type: 'text', text: line.slice(last, match.index) })
+      tokens.push({ type: 'pipe', text: '|' })
+      last = match.index + 1
+    }
+  }
+  tokens.push({ type: 'text', text: line.slice(last) })
+  return tokens
+}
+
+// Decorates one line of a Markdown table for Live Preview. Header/body rows
+// render their cells as real table cells (via CSS `display: table-cell` on
+// sibling line-divs, which the browser auto-groups into an anonymous table -
+// see LiveMarkdownEditor.css) so the table actually looks like a table
+// instead of raw "| a | b |" text, while the leading/trailing pipes and the
+// separator row's dashes stay hidden the same way other block syntax does.
+//
+// Every pipe/edge syntax span is nested *inside* the adjacent
+// `lp-table-cell` span rather than rendered as a row-level sibling: a
+// table-row's in-flow children that aren't themselves table-cells get
+// wrapped in browser-generated anonymous cells (CSS 2.1 17.2.1), so a bare
+// syntax span sitting next to the real cells - visible only while that row
+// is active - was silently adding extra phantom columns and shifting the
+// row's cells out of alignment with the rest of the table.
+export function decorateTableRow(lineText, key, ctx, activeRange, rowType, aligns) {
+  const isActive = activeRange !== null
+
+  if (rowType === 'separator') {
+    return isActive
+      ? { className: 'lp-table-separator-active', content: lineText }
+      : { className: 'lp-table-separator', content: lineText }
+  }
+
+  const lineSpanClass = syntaxClass(isActive)
+  const tokens = splitRowIntoTokens(lineText)
+  const firstIsEdge = tokens[0].type === 'text' && tokens.length > 1 && tokens[0].text.trim() === ''
+  const lastIsEdge =
+    tokens[tokens.length - 1].type === 'text' && tokens.length > 1 && tokens[tokens.length - 1].text.trim() === ''
+
+  let cursor = 0
+  let cellIndex = 0
+  const cells = []
+  let pendingSyntax = []
+
+  tokens.forEach((tok, idx) => {
+    const start = cursor
+    cursor += tok.text.length
+    const tokKey = `${key}-t${idx}`
+
+    if (tok.type === 'pipe') {
+      pendingSyntax.push(
+        <span key={tokKey} className={lineSpanClass}>
+          {tok.text}
+        </span>,
+      )
+      return
+    }
+
+    const isEdge = (idx === 0 && firstIsEdge) || (idx === tokens.length - 1 && lastIsEdge)
+    if (isEdge) {
+      if (tok.text) {
+        pendingSyntax.push(
+          <span key={tokKey} className={lineSpanClass}>
+            {tok.text}
+          </span>,
+        )
+      }
+      return
+    }
+
+    const align = aligns[cellIndex]
+    cellIndex++
+    cells.push({
+      align,
+      content: [...pendingSyntax, ...decorateInline(tok.text, tokKey, ctx, start, activeRange)],
+    })
+    pendingSyntax = []
+  })
+
+  // A trailing pipe/edge after the last real cell (or a malformed row with
+  // no real cells at all) has nowhere later to attach to, so fold it into
+  // the last cell instead of dropping it - every raw character must still
+  // appear somewhere in the output (see domOffset.js).
+  if (pendingSyntax.length) {
+    if (cells.length) {
+      cells[cells.length - 1].content.push(...pendingSyntax)
+    } else {
+      cells.push({ align: null, content: pendingSyntax })
+    }
+  }
+
+  const content = cells.map((cell, idx) => (
+    <span key={`${key}-c${idx}`} className="lp-table-cell" style={{ textAlign: cell.align ?? undefined }}>
+      {cell.content}
+    </span>
+  ))
+
+  return { className: `lp-table-row lp-table-${rowType}`, content }
 }
 
 // Decorates a single non-code-fence line: detects its block type (heading,

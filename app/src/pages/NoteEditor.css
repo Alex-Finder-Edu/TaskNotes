@@ -334,6 +334,146 @@
   border-bottom: 1px dashed #e5484d;
 }
 
+.note-editor-preview .md-table-wrapper {
+  margin: 8px 0;
+}
+
+.note-editor-preview .md-table-scroll {
+  position: relative;
+  overflow: visible;
+}
+
+.note-editor-preview .md-table {
+  border-collapse: collapse;
+  width: auto;
+}
+
+.note-editor-preview .md-table th,
+.note-editor-preview .md-table td {
+  border: 1px solid var(--border);
+  padding: 2px 4px;
+}
+
+.note-editor-preview .md-table th {
+  background: var(--accent-bg);
+}
+
+.note-editor-preview .md-table-th-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.note-editor-preview .md-table-cell-input {
+  box-sizing: content-box;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+}
+
+.note-editor-preview .md-table-cell-input:focus {
+  outline: none;
+}
+
+.note-editor-preview .md-table-sort-button {
+  flex-shrink: 0;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.note-editor-preview .md-table-sort-button:hover,
+.note-editor-preview .md-table-sort-button.active {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.note-editor-preview .md-table-col-hover {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.note-editor-preview .md-table-col-hover-left {
+  left: -8px;
+}
+
+.note-editor-preview .md-table-col-hover-right {
+  right: -8px;
+}
+
+.note-editor-preview .md-table-col-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.note-editor-preview .md-table-row-hover {
+  height: 14px;
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-editor-preview .md-table-row-controls {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.note-editor-preview .md-table-col-controls button,
+.note-editor-preview .md-table-row-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.note-editor-preview .md-table-col-controls button:hover,
+.note-editor-preview .md-table-row-controls button:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.note-editor-preview .md-table-col-controls button:disabled,
+.note-editor-preview .md-table-row-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 @media (max-width: 800px) {
   .note-editor-split {
     flex-direction: column;

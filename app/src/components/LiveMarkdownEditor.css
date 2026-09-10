@@ -107,6 +107,34 @@
   font-size: 0.95em;
 }
 
+.live-markdown-editor .lp-table-row {
+  display: table-row;
+}
+
+.live-markdown-editor .lp-table-header {
+  font-weight: 700;
+}
+
+.live-markdown-editor .lp-table-cell {
+  display: table-cell;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+}
+
+.live-markdown-editor .lp-table-header .lp-table-cell {
+  background: var(--accent-bg);
+}
+
+.live-markdown-editor .lp-table-separator {
+  display: none;
+}
+
+.live-markdown-editor .lp-table-separator-active {
+  display: block;
+  opacity: 0.55;
+  font-family: var(--mono);
+}
+
 .live-markdown-editor code {
   padding: 1px 5px;
   border-radius: 4px;
@@ -133,6 +161,70 @@
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+
+.lp-table-row-hover {
+  position: absolute;
+  height: 14px;
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.lp-table-col-hover {
+  position: absolute;
+  width: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.lp-table-row-controls,
+.lp-table-col-controls {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.lp-table-col-controls {
+  flex-direction: column;
+}
+
+.lp-table-row-controls button,
+.lp-table-col-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lp-table-row-controls button:hover,
+.lp-table-col-controls button:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.lp-table-row-controls button:disabled,
+.lp-table-col-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .live-markdown-placeholder {

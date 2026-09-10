@@ -2,7 +2,8 @@ import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, u
 import { getFolderPath } from '../context/NotesContext.jsx'
 import { findLinkContext } from '../utils/linkContext.js'
 import { domPositionToRawOffset, rawOffsetToDomPosition, getLineIndexForOffset } from '../utils/domOffset.js'
-import { computeFenceStates, decorateLine } from '../utils/liveMarkdownDecorate.jsx'
+import { computeFenceStates, computeTableStates, computeTableBlocks, decorateLine, decorateTableRow } from '../utils/liveMarkdownDecorate.jsx'
+import { insertBlankTableRow, removeLastTableRow, insertTableColumn, removeTableColumn } from '../utils/markdown.jsx'
 import './LinkAwareTextarea.css'
 import './LiveMarkdownEditor.css'
 
@@ -27,6 +28,7 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
 ) {
   const rootRef = useRef(null)
   const wrapperRef = useRef(null)
+  const lineElsRef = useRef([])
   const valueRef = useRef(value)
   const onChangeRef = useRef(onChange)
   const selectionStartRef = useRef(0)
@@ -41,6 +43,9 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
   const [linkCtx, setLinkCtx] = useState(null)
   const [highlightIndex, setHighlightIndex] = useState(0)
   const [caretPos, setCaretPos] = useState({ top: 0, left: 0 })
+  const [tableOverlays, setTableOverlays] = useState([])
+  const [hoverRowKey, setHoverRowKey] = useState(null)
+  const [hoverCol, setHoverCol] = useState(null)
 
   valueRef.current = value
   onChangeRef.current = onChange
@@ -53,6 +58,19 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
     const pool = query ? notes.filter((note) => note.title.toLowerCase().includes(query)) : notes
     return pool.slice(0, 50)
   }, [linkCtx, notes])
+
+  const lines = value.split('\n')
+  const fenceStates = computeFenceStates(lines)
+  const tableStates = computeTableStates(lines, fenceStates)
+  const tableBlocks = computeTableBlocks(lines, fenceStates)
+  const lineStarts = []
+  {
+    let offset = 0
+    for (const lineText of lines) {
+      lineStarts.push(offset)
+      offset += lineText.length + 1
+    }
+  }
 
   // Tracks both which line the caret/selection is on (activeLineIndex) and
   // its exact raw-offset bounds (selectionRange), since Live Preview needs
@@ -146,6 +164,50 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
     }
   }
 
+  // Measures each table block's on-screen bounding box (from its rendered
+  // line-divs) so the row/column add-remove hover strips can be positioned
+  // as an absolute overlay - the contentEditable root's children must stay
+  // exactly one div per raw line (see domOffset.js), so these controls can't
+  // live inside it as extra DOM nodes.
+  function updateTableOverlays() {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return
+    const wrapperRect = wrapper.getBoundingClientRect()
+    const next = tableBlocks
+      .map((block) => {
+        const headerEl = lineElsRef.current[block.headerLine]
+        const lastVisibleLine = block.endLine > block.sepLine ? block.endLine : block.headerLine
+        const lastEl = lineElsRef.current[lastVisibleLine]
+        if (!headerEl || !lastEl) return null
+        const headerRect = headerEl.getBoundingClientRect()
+        const lastRect = lastEl.getBoundingClientRect()
+        return {
+          key: String(block.headerLine),
+          block,
+          top: headerRect.top - wrapperRect.top + wrapper.scrollTop,
+          left: headerRect.left - wrapperRect.left + wrapper.scrollLeft,
+          width: headerRect.width,
+          bottom: lastRect.bottom - wrapperRect.top + wrapper.scrollTop,
+        }
+      })
+      .filter(Boolean)
+    setTableOverlays((prev) => {
+      const unchanged =
+        prev.length === next.length &&
+        prev.every((item, idx) => {
+          const other = next[idx]
+          return (
+            item.key === other.key &&
+            item.top === other.top &&
+            item.left === other.left &&
+            item.width === other.width &&
+            item.bottom === other.bottom
+          )
+        })
+      return unchanged ? prev : next
+    })
+  }
+
   useLayoutEffect(() => {
     if (pendingSelectionRef.current) {
       const { start, end } = pendingSelectionRef.current
@@ -153,7 +215,24 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
       applySelection(start, end)
     }
     updateLinkContextAndCaretRect()
+    updateTableOverlays()
   })
+
+  function handleAddTableRow(block) {
+    onChangeRef.current(insertBlankTableRow(valueRef.current.split('\n'), block).join('\n'))
+  }
+
+  function handleRemoveTableRow(block) {
+    onChangeRef.current(removeLastTableRow(valueRef.current.split('\n'), block).join('\n'))
+  }
+
+  function handleAddTableColumn(block, side) {
+    onChangeRef.current(insertTableColumn(valueRef.current.split('\n'), block, side).join('\n'))
+  }
+
+  function handleRemoveTableColumn(block, side) {
+    onChangeRef.current(removeTableColumn(valueRef.current.split('\n'), block, side).join('\n'))
+  }
 
   useEffect(() => {
     function handleSelectionChange() {
@@ -347,17 +426,6 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
     }, 150)
   }
 
-  const lines = value.split('\n')
-  const fenceStates = computeFenceStates(lines)
-  const lineStarts = []
-  {
-    let offset = 0
-    for (const lineText of lines) {
-      lineStarts.push(offset)
-      offset += lineText.length + 1
-    }
-  }
-
   return (
     <div className="live-markdown-wrapper" ref={wrapperRef}>
       <div
@@ -377,6 +445,8 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
           let content
           let marker
 
+          const tableState = tableStates[i]
+
           if (fenceState.isFenceDelimiter) {
             className += ' lp-fence-line'
             content = lineText
@@ -390,20 +460,117 @@ const LiveMarkdownEditor = forwardRef(function LiveMarkdownEditor(
                   end: Math.max(0, Math.min(selectionRange.end - lineStarts[i], lineText.length)),
                 }
               : null
-            const decorated = decorateLine(lineText, `l${i}`, linkContext, activeRange)
+            const decorated = tableState
+              ? decorateTableRow(lineText, `l${i}`, linkContext, activeRange, tableState.rowType, tableState.aligns)
+              : decorateLine(lineText, `l${i}`, linkContext, activeRange)
             className += ` ${decorated.className}`
             content = decorated.content
             marker = decorated.marker
           }
 
           return (
-            <div key={i} className={className} data-marker={marker}>
+            <div
+              key={i}
+              ref={(el) => {
+                lineElsRef.current[i] = el
+              }}
+              className={className}
+              data-marker={marker}
+            >
               {lineText === '' ? <br /> : content}
             </div>
           )
         })}
       </div>
       {value === '' && placeholder && <div className="live-markdown-placeholder">{placeholder}</div>}
+      {tableOverlays.map((overlay) => (
+        <div key={overlay.key}>
+          <div
+            className="lp-table-row-hover"
+            style={{ top: overlay.bottom - 2, left: overlay.left, width: overlay.width }}
+            onMouseEnter={() => setHoverRowKey(overlay.key)}
+            onMouseLeave={() => setHoverRowKey((k) => (k === overlay.key ? null : k))}
+          >
+            {hoverRowKey === overlay.key && (
+              <div className="lp-table-row-controls">
+                <button
+                  type="button"
+                  title="Add row"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleAddTableRow(overlay.block)}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  title="Remove last row"
+                  disabled={overlay.block.endLine <= overlay.block.sepLine}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleRemoveTableRow(overlay.block)}
+                >
+                  −
+                </button>
+              </div>
+            )}
+          </div>
+          <div
+            className="lp-table-col-hover lp-table-col-hover-left"
+            style={{ top: overlay.top, left: overlay.left - 8, height: overlay.bottom - overlay.top }}
+            onMouseEnter={() => setHoverCol({ key: overlay.key, side: 'left' })}
+            onMouseLeave={() => setHoverCol((c) => (c && c.key === overlay.key && c.side === 'left' ? null : c))}
+          >
+            {hoverCol && hoverCol.key === overlay.key && hoverCol.side === 'left' && (
+              <div className="lp-table-col-controls">
+                <button
+                  type="button"
+                  title="Add column"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleAddTableColumn(overlay.block, 'left')}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  title="Remove column"
+                  disabled={overlay.block.colCount <= 1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleRemoveTableColumn(overlay.block, 'left')}
+                >
+                  −
+                </button>
+              </div>
+            )}
+          </div>
+          <div
+            className="lp-table-col-hover lp-table-col-hover-right"
+            style={{ top: overlay.top, left: overlay.left + overlay.width - 6, height: overlay.bottom - overlay.top }}
+            onMouseEnter={() => setHoverCol({ key: overlay.key, side: 'right' })}
+            onMouseLeave={() => setHoverCol((c) => (c && c.key === overlay.key && c.side === 'right' ? null : c))}
+          >
+            {hoverCol && hoverCol.key === overlay.key && hoverCol.side === 'right' && (
+              <div className="lp-table-col-controls">
+                <button
+                  type="button"
+                  title="Add column"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleAddTableColumn(overlay.block, 'right')}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  title="Remove column"
+                  disabled={overlay.block.colCount <= 1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleRemoveTableColumn(overlay.block, 'right')}
+                >
+                  −
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
       {linkCtx && (
         <ul className="link-autocomplete" style={{ top: caretPos.top, left: caretPos.left }}>
           {matches.length === 0 ? (
